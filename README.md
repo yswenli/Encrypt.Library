@@ -1,9 +1,8 @@
 ﻿[![NuGet](https://img.shields.io/nuget/v/Encrypt.Library.svg)](https://nuget.org/packages/Encrypt.Library)
 [![NET 6.0](https://img.shields.io/badge/.NET-6.0-brightgreen)](https://www.microsoft.com/net/core)
 [![NetStandard 2.1](https://img.shields.io/badge/NetStandard-2.1-orange.svg)](https://www.microsoft.com/net/core)
-[![license](https://img.shields.io/github/license/myloveCc/Encrypt.Library.svg)](https://github.com/myloveCc/Encrypt.Library/blob/master/License)
-[![GitHub-Actions-Img]][GitHub-Actions-Url]
-[GitHub-Actions-Url]:https://github.com/yswenli/Encrypt.Library/actions
+[![license](https://img.shields.io/github/license/myloveCc/Encrypt.Library.svg)](https://github.com/yswenli/Encrypt.Library/blob/master/LICENSE.txt)
+
 
 NETCore encrypt and decrypt tool，Include AES，RSA，MD5，SAH1，SAH256，SHA384，SHA512 and more
 
