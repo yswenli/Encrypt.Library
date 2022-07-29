@@ -32,14 +32,14 @@ namespace Encrypt.Library
     /// <summary>
     /// MDUtil
     /// </summary>
-    public static class MDUtil
+    public static class MD5Util
     {
         /// <summary>
         /// md5
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static byte[] GetMD5(byte[] data)
+        public static byte[] GetMD5(this byte[] data)
         {
             return EncryptProvider.Md5(data);
         }
@@ -49,7 +49,7 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static string GetMD5Str(string data)
+        public static string GetMD5Str(this string data)
         {
             return EncryptProvider.Md5(data);
         }
@@ -59,7 +59,7 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static string GetMD5Str(byte[] data)
+        public static string GetMD5Str(this byte[] data)
         {
             return EncryptProvider.GetMd5Str(data);
         }
@@ -70,7 +70,7 @@ namespace Encrypt.Library
         /// <param name="filePath"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static string GetMD5ForFile(string filePath)
+        public static string GetMD5ForFile(this string filePath)
         {
             if (!File.Exists(filePath))
                 throw new ArgumentException(string.Format("<{0}>, 不存在", filePath));
@@ -91,23 +91,24 @@ namespace Encrypt.Library
             md5 = md5.Replace("-", "");
             return md5;
         }
+
         /// <summary>
         /// GetHMACMD5
         /// </summary>
-        /// <param name="key"></param>
         /// <param name="data"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public static string GetHMACMD5(string key, string data)
+        public static string GetHMACMD5(this string data, string key)
         {
             return EncryptProvider.HMACMD5(data, key);
         }
         /// <summary>
         /// GetHMACMD5
         /// </summary>
-        /// <param name="key"></param>
         /// <param name="data"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public static string GetHMACMD5(string key, byte[] data)
+        public static string GetHMACMD5(this byte[] data, string key)
         {
             return EncryptProvider.HMACMD5(data, key);
         }
