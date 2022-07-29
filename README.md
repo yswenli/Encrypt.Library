@@ -145,17 +145,6 @@ dotnet add package Encrypt.Library -Version 1.0.1.3
     ```
 
 ## RSA
-
-  - #### Enum RsaSize
-
-    ```csharp
-    public enum RsaSize
-    {
-        R2048=2048,
-        R3072=3072,
-        R4096=4096
-    }
-    ```
   
   - #### Create RSA Key with RsaSize
 
@@ -256,22 +245,22 @@ dotnet add package Encrypt.Library -Version 1.0.1.3
   - #### SHA1
     ```csharp
     var srcString = "sha hash";    
-    var hashed = SHAUtil.Sha1(srcString); 
+    var hashed = SHAUtil.GetSHA1(srcString); 
     ```
   - #### SHA256
     ```csharp  
     var srcString = "sha hash";    
-    var hashed = SHAUtil.Sha256(srcString); 
+    var hashed = SHAUtil.GetSHA256(srcString); 
     ```  
   - #### SHA384
     ```csharp  
     var srcString = "sha hash";    
-    var hashed = SHAUtil.Sha384(srcString); 
+    var hashed = SHAUtil.GetSHA384(srcString); 
     ```
   - #### SHA512
     ```csharp
     var srcString = "sha hash";    
-    var hashed = SHAUtil.Sha512(srcString);
+    var hashed = SHAUtil.GetSHA512(srcString);
     ```
   
   ## HMAC
@@ -286,25 +275,25 @@ dotnet add package Encrypt.Library -Version 1.0.1.3
     ```csharp
     var key="xxx";
     var srcString = "hmac sha hash";    
-    var hashed = SHA.GetHMACSHA1(srcString,key);
+    var hashed = SHAUtil.GetSHA1(srcString,key);
     ```
   - #### HMAC-SHA256
     ```csharp
     var key="xxx";
     var srcString = "hmac sha hash";    
-    var hashed = SHA.GetSHA256(srcString,key);
+    var hashed = SHAUtil.GetSHA256(srcString,key);
     ```
   - #### HMAC-SHA384
     ```csharp
     var key="xxx";
     var srcString = "hmac sha hash";    
-    var hashed = SHA.GetSHA384(srcString,key);
+    var hashed = SHAUtil.GetSHA384(srcString,key);
     ```
   - #### HMAC-SHA512
     ```csharp
     var key="xxx";
     var srcString = "hmac sha hash";    
-    var hashed = SHA.GetSHA512(srcString，key);
+    var hashed = SHAUtil.GetSHA512(srcString，key);
     ```
  
 # LICENSE
