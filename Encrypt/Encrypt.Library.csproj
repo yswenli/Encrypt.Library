@@ -7,6 +7,13 @@
     <Description>Common encryption and decryption algorithm library</Description>
     <PackageIcon>128_128.png</PackageIcon>
     <PackageTags>encryption,decryption</PackageTags>
+    <RepositoryUrl>https://github.com/yswenli/Encrypt.Library</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/yswenli/Encrypt.Library</PackageProjectUrl>
+    <Copyright>@yswenli</Copyright>
+    <PackageReleaseNotes>Common encryption and decryption algorithm library</PackageReleaseNotes>
+    <PackageLicenseFile>D:\WorkBench\Walle\Encrypt\LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>1.0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
