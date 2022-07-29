@@ -11,7 +11,8 @@
     <PackageProjectUrl>https://github.com/yswenli/Encrypt.Library</PackageProjectUrl>
     <Copyright>@yswenli</Copyright>
     <PackageReleaseNotes>Common encryption and decryption algorithm library</PackageReleaseNotes>
-    <Version>1.0.0.2</Version>
+    <Version>1.0.0.3</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,13 @@
       <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
