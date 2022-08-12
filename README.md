@@ -12,11 +12,11 @@ To install NETCore.Encrypt, run the following command in the [Package Manager Co
 
 ## Package Manager
 ```
-Install-Package Encrypt.Library -Version 1.0.1.3
+Install-Package Encrypt.Library -Version 2.0.6.6
 ```
 ## .NET CLI
 ```
-dotnet add package Encrypt.Library -Version 1.0.1.3
+dotnet add package Encrypt.Library -Version 2.0.6.6
 ```
 
 ## PackageReference
