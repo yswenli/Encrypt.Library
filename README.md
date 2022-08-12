@@ -296,6 +296,81 @@ dotnet add package Encrypt.Library -Version 1.0.1.3
     var hashed = SHAUtil.GetSHA512(srcString，key);
     ```
  
+
+  - #### SM3
+    ```csharp
+    byte[] bytes=SM3Util.ToSM3byte("Encrypt.Library");
+    ```
+## SM2
+  - #### SM2
+    ```csharp
+    byte[] pubkey,privkey;
+    SM2Util.GenerateKey(out pubkey, out privkey);
+    var bytes = Encoding.UTF8.GetByte("Encrypt.Library");    
+    var encrypt = SM2Util.Encrypt(pubkey,privkey,Mode.C1C2C3,bytes);
+    var decrypt = SM2Util.Decrypt(pubkey,privkey,Mode.C1C2C3,encrypt);
+    ```
+
+## SM4
+
+- #### Create SM4 Key
+
+  ```csharp
+  
+  //des key length is 24 bit
+  var desKey = SM4Util.Key;
+  
+  ```
+- #### Create SM4 Iv 【NEW】
+
+  ```csharp
+  
+  //des iv length is 8 bit
+  var desIv = SM4Util.Iv;
+  
+  ```
+
+- #### SM4 encrypt (ECB mode)
+
+    ```csharp
+    var srcString = "sm4 encrypt";
+    var encrypted = SM4Util.Encrypt(key, srcString);
+    ```
+- #### SM4 encrypt bytes (ECB mode)
+   
+    ```csharp
+    var srcBytes =  new byte[]{xxx};
+    var decryptedBytes = SM4Util.Encrypt(key, srcBytes);
+    ```
+- #### SM4 decrypt (ECB mode)
+
+    ```csharp
+    var encryptedStr = "xxxx";
+    var decrypted = SM4Util.Decrypt(key, encryptedStr);
+    ```
+
+- #### SM4 decrypt bytes  (ECB mode)
+
+    ```csharp
+    var encryptedBytes =  new byte[]{xxx};
+    var decryptedBytes = SM4Util.Decrypt(key, encryptedBytes);
+    ```
+
+- #### SM4 encrypt bytes with iv (CBC mode)【NEW】
+
+    ```csharp
+    var srcBytes =  new byte[]{xxx};
+    var encrypted = SM4Util.Encrypt(key, iv, srcBytes);
+    ```
+
+- #### SM4 decrypt bytes with iv (CBC mode)【NEW】
+
+    ```csharp
+    var encryptedBytes =  new byte[]{xxx};
+    var encrypted = SM4Util.Decrypt(key, iv, encryptedBytes);
+    ```
+
+
 # LICENSE
 
 [MIT License](https://github.com/yswenli/Encrypt.Library/blob/master/LICENSE.txt)

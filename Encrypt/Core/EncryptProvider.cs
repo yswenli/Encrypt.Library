@@ -6,6 +6,8 @@ using System.Text;
 using Encrypt.Library.Core.Extensions.Internal;
 using Encrypt.Library.Core.Internal;
 using Encrypt.Library.Core.Shared;
+using Encrypt.Library.Extensions;
+
 namespace Encrypt.Library.Core
 {
     public class EncryptProvider

@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Encrypt.Library.Extensions;
 
 namespace Encrypt.Library
 {

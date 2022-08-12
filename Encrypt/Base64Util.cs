@@ -56,7 +56,7 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static string UriSafeEncode(byte[] input)
+        public static string ToUriSafeEncode(this byte[] input)
         {
             if (input is null)
                 throw new ArgumentNullException(nameof(input));
@@ -74,7 +74,7 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static byte[] UriSafeDecode(string input)
+        public static byte[] ToUriSafeDecode(this string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 throw new ArgumentException(nameof(input));

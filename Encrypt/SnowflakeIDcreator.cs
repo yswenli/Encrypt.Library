@@ -45,24 +45,29 @@ namespace Encrypt.Library
         /// <summary>
         /// 设置机器码
         /// </summary>
-        /// <param name="Id">机器码</param>
-        public static void SetWorkerID(long Id)
+        /// <param name="workerId">机器码</param>
+        public static void SetWorkerID(long workerId)
         {
-            SnowflakeIDcreator.workerId = Id;
+            SnowflakeIDcreator.workerId = workerId;
         }
 
-        public static long nextId()
+        /// <summary>
+        /// NextId
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static long NextId()
         {
             lock (lockObj)
             {
-                long timestamp = timeGen();
+                long timestamp = TimeGen();
                 if (lastTimestamp == timestamp)
                 { //同一微妙中生成ID
                     SnowflakeIDcreator.sequence = (SnowflakeIDcreator.sequence + 1) & SnowflakeIDcreator.sequenceMask; //用&运算计算该微秒内产生的计数是否已经到达上限
                     if (SnowflakeIDcreator.sequence == 0)
                     {
                         //一微妙内产生的ID计数已达上限，等待下一微妙
-                        timestamp = tillNextMillis(lastTimestamp);
+                        timestamp = TillNextMillis(lastTimestamp);
                     }
                 }
                 else
@@ -85,12 +90,12 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="lastTimestamp"></param>
         /// <returns></returns>
-        private static long tillNextMillis(long lastTimestamp)
+        private static long TillNextMillis(long lastTimestamp)
         {
-            long timestamp = timeGen();
+            long timestamp = TimeGen();
             while (timestamp <= lastTimestamp)
             {
-                timestamp = timeGen();
+                timestamp = TimeGen();
             }
             return timestamp;
         }
@@ -99,7 +104,7 @@ namespace Encrypt.Library
         /// 生成当前时间戳
         /// </summary>
         /// <returns></returns>
-        private static long timeGen()
+        private static long TimeGen()
         {
             return (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }

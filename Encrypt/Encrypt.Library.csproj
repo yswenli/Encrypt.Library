@@ -10,9 +10,10 @@
     <RepositoryUrl>https://github.com/yswenli/Encrypt.Library</RepositoryUrl>
     <PackageProjectUrl>https://github.com/yswenli/Encrypt.Library</PackageProjectUrl>
     <Copyright>@yswenli</Copyright>
-    <PackageReleaseNotes>Common encryption and decryption algorithm library</PackageReleaseNotes>
-    <Version>2.0.1.8</Version>
+    <PackageReleaseNotes>Encrypt.Library is a common and quick encryption and decryption tool library</PackageReleaseNotes>
+    <Version>2.0.6.6</Version>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Title>Encrypt.Library is a common and quick encryption and decryption tool library</Title>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +43,10 @@
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
     <PackageReference Include="System.Security.Permissions" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Core\Models\" />
   </ItemGroup>
 
 </Project>
