@@ -155,20 +155,20 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Encrypt(string data, string publicKey, bool pkcs1 = false)
         {
-            return pkcs1 ? EncryptProvider.RSAEncrypt(data, publicKey, RSAEncryptionPadding.Pkcs1)
-                : EncryptProvider.RSAEncrypt(data, publicKey);
+            return pkcs1 ? EncryptProvider.RSAEncrypt(publicKey, data, RSAEncryptionPadding.Pkcs1)
+                : EncryptProvider.RSAEncrypt(publicKey, data);
         }
         /// <summary>
         /// 解密
         /// </summary>
         /// <param name="data"></param>
-        /// <param name="publicKey"></param>
+        /// <param name="privateKey"></param>
         /// <param name="pkcs1"></param>
         /// <returns></returns>
-        public static string Decrypt(string data, string publicKey, bool pkcs1 = false)
+        public static string Decrypt(string data, string privateKey, bool pkcs1 = false)
         {
-            return pkcs1 ? EncryptProvider.RSADecrypt(data, publicKey, RSAEncryptionPadding.Pkcs1)
-                : EncryptProvider.RSADecrypt(data, publicKey);
+            return pkcs1 ? EncryptProvider.RSADecrypt(privateKey, data, RSAEncryptionPadding.Pkcs1)
+                : EncryptProvider.RSADecrypt(privateKey, data);
         }
         /// <summary>
         /// 加密
