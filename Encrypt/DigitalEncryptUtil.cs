@@ -53,7 +53,7 @@ namespace Encrypt.Library
             {
                 bytes[i] ^= IntDefault[i];
             }
-            return AESUtil.Encrypt(bytes, KEY).ToHexString();
+            return AESUtil.Encrypt(bytes, KEY).BytesToHexStr();
         }
         /// <summary>
         /// 将整数转换成字符串
@@ -67,7 +67,7 @@ namespace Encrypt.Library
             {
                 bytes[i] ^= LongDefault[i];
             }
-            return AESUtil.Encrypt(bytes, KEY).ToHexString();
+            return AESUtil.Encrypt(bytes, KEY).BytesToHexStr();
         }
         /// <summary>
         /// 将decimal转换成字符串
@@ -84,7 +84,7 @@ namespace Encrypt.Library
                 bytes1[i] ^= bytes2[i];
                 result.AddRange(BitConverter.GetBytes(bytes1[i]));
             }
-            return AESUtil.Encrypt(result.ToArray(), KEY).ToHexString();
+            return AESUtil.Encrypt(result.ToArray(), KEY).BytesToHexStr();
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static int ToInt(string str)
         {
-            var bytes = str.ToBytes();
+            var bytes = str.StrToHexBytes();
             var source = AESUtil.Decrypt(bytes, KEY);
             for (int i = 0; i < source.Length; i++)
             {
@@ -109,7 +109,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static long ToLong(string str)
         {
-            var bytes = str.ToBytes();
+            var bytes = str.StrToHexBytes();
             var source = AESUtil.Decrypt(bytes, KEY);
             for (int i = 0; i < source.Length; i++)
             {
@@ -125,7 +125,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static decimal ToDecimal(string str)
         {
-            var bytes1 = str.ToBytes();            
+            var bytes1 = str.StrToHexBytes();            
             var source = AESUtil.Decrypt(bytes1, KEY);
             List<int> ints = new List<int>();
             for (int i = 0; i < source.Length/4; i++)

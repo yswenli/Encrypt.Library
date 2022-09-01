@@ -36,37 +36,33 @@ namespace Encrypt.Library.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static string ToHexString(this byte[] bytes)
+        public static string BytesToHexStr(this byte[] bytes)
         {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
+            StringBuilder returnStr = new StringBuilder();
+            if (bytes != null)
             {
-                sb.Append(bytes[i].ToString("X2"));
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    returnStr.Append(bytes[i].ToString("X2"));
+                }
             }
-            return sb.ToString();
+            return returnStr.ToString();
         }
 
         /// <summary>
         /// hex string to byte extension
         /// </summary>
-        /// <param name="hex"></param>
+        /// <param name="hexString"></param>
         /// <returns></returns>
-        public static byte[] ToBytes(this string hex)
+        public static byte[] StrToHexBytes(this string hexString)
         {
-            if (hex.Length == 0)
-            {
-                return new byte[] { 0 };
-            }
-            if (hex.Length % 2 == 1)
-            {
-                hex = "0" + hex;
-            }
-            byte[] result = new byte[hex.Length / 2];
-            for (int i = 0; i < hex.Length / 2; i++)
-            {
-                result[i] = byte.Parse(hex.Substring(2 * i, 2), NumberStyles.AllowHexSpecifier);
-            }
-            return result;
+            hexString = hexString.Replace(" ", "");
+            if ((hexString.Length % 2) != 0)
+                hexString += " ";
+            byte[] returnBytes = new byte[hexString.Length / 2];
+            for (int i = 0; i < returnBytes.Length; i++)
+                returnBytes[i] = System.Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+            return returnBytes;
         }
     }
 }

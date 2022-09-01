@@ -978,7 +978,7 @@ namespace Encrypt.Library.Core
                 }
 
                 byte[] encryptBytes = rsa.Encrypt(rawBytes, padding);
-                return encryptBytes.ToHexString();
+                return encryptBytes.BytesToHexStr();
             }
         }
         /// <summary>
@@ -1084,7 +1084,7 @@ namespace Encrypt.Library.Core
 
             using (rsa)
             {
-                byte[] srcBytes = srcString.ToBytes();
+                byte[] srcBytes = srcString.StrToHexBytes();
                 byte[] decryptBytes = rsa.Decrypt(srcBytes, padding);
                 return Encoding.UTF8.GetString(decryptBytes);
             }
@@ -1194,8 +1194,8 @@ namespace Encrypt.Library.Core
                 {
                     PublicKey = publicKey,
                     PrivateKey = privateKey,
-                    Exponent = rsa.ExportParameters(false).Exponent.ToHexString(),
-                    Modulus = rsa.ExportParameters(false).Modulus.ToHexString()
+                    Exponent = rsa.ExportParameters(false).Exponent.BytesToHexStr(),
+                    Modulus = rsa.ExportParameters(false).Modulus.BytesToHexStr()
                 };
             }
         }
@@ -1216,8 +1216,8 @@ namespace Encrypt.Library.Core
             {
                 PublicKey = publicKey,
 
-                Exponent = rsa.ExportParameters(false).Exponent.ToHexString(),
-                Modulus = rsa.ExportParameters(false).Modulus.ToHexString()
+                Exponent = rsa.ExportParameters(false).Exponent.BytesToHexStr(),
+                Modulus = rsa.ExportParameters(false).Modulus.BytesToHexStr()
             };
 
             if (includePrivate)
