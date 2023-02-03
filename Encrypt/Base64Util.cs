@@ -52,35 +52,28 @@ namespace Encrypt.Library
         }
 
         /// <summary>
-        /// UriSafe加密
+        /// 将base64转换成url安全的字符串
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="base64"></param>
         /// <returns></returns>
-        public static string ToUriSafeEncode(this byte[] input)
+        public static string EncodeForUriSafe(this string base64)
         {
-            if (input is null)
-                throw new ArgumentNullException(nameof(input));
-            if (input.Length == 0)
-                throw new ArgumentOutOfRangeException(nameof(input));
-
-            var output = Convert.ToBase64String(input);
-            output = output.Split('=')[0];
+            if (string.IsNullOrEmpty(base64)) return null;
+            var output = base64.Split('=')[0];
             output = output.Replace('+', '-');
             output = output.Replace('/', '_');
             return output;
         }
         /// <summary>
-        /// UriSafe解密
+        /// 将url安全的字符串转换成base64
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="uriSafeTxt"></param>
         /// <returns></returns>
-        public static byte[] ToUriSafeDecode(this string input)
+        /// <exception cref="FormatException"></exception>
+        public static string DecodeForUriSafe(this string uriSafeTxt)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                throw new ArgumentException(nameof(input));
-
-            var output = input;
-            output = output.Replace('-', '+');
+            if (string.IsNullOrEmpty(uriSafeTxt)) return null;
+            var output = uriSafeTxt.Replace('-', '+');
             output = output.Replace('_', '/');
             switch (output.Length % 4)
             {
@@ -93,9 +86,35 @@ namespace Encrypt.Library
                     output += "=";
                     break;
                 default:
-                    throw new FormatException("非法 base64url 字符串。");
+                    throw new FormatException("非法的base64url字符串。");
             }
-            return Convert.FromBase64String(output);
+            return output;
+        }
+
+        /// <summary>
+        /// UriSafe加密
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string ToUriSafeEncode(this byte[] input)
+        {
+            if (input is null)
+                throw new ArgumentNullException(nameof(input));
+            if (input.Length == 0)
+                throw new ArgumentOutOfRangeException(nameof(input));
+
+            return Convert.ToBase64String(input).EncodeForUriSafe();
+        }
+        /// <summary>
+        /// UriSafe解密
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static byte[] ToUriSafeDecode(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                throw new ArgumentException(nameof(input));
+            return Convert.FromBase64String(input.DecodeForUriSafe());
         }
     }
 }
