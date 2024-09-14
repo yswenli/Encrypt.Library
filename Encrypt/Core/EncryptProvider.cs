@@ -1337,6 +1337,26 @@ namespace Encrypt.Library.Core
                 return str_md5_out;
             }
         }
+
+        /// <summary>
+        ///  md5
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public static string GetMd5ForFile(string filePath)
+        {
+            if (!File.Exists(filePath)) return string.Empty;
+            using (MD5 md5 = MD5.Create())
+            {
+                using (var fs = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    var hash = md5.ComputeHash(fs);
+                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
+            }
+        }
+
+
         #endregion
 
         #region HMACMD5

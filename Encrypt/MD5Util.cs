@@ -65,31 +65,14 @@ namespace Encrypt.Library
         }
 
         /// <summary>
-        /// 高性能计算文件的md5
+        /// 计算文件的md5
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static string GetMD5ForFile(this string filePath)
         {
-            if (!File.Exists(filePath))
-                throw new ArgumentException(string.Format("<{0}>, 不存在", filePath));
-            int bufferSize = 1024 * 16;
-            byte[] buffer = new byte[bufferSize];
-            Stream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            HashAlgorithm hashAlgorithm = new MD5CryptoServiceProvider();
-            int readLength = 0;
-            var output = new byte[bufferSize];
-            while ((readLength = inputStream.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                hashAlgorithm.TransformBlock(buffer, 0, readLength, output, 0);
-            }
-            hashAlgorithm.TransformFinalBlock(buffer, 0, 0);
-            string md5 = BitConverter.ToString(hashAlgorithm.Hash);
-            hashAlgorithm.Clear();
-            inputStream.Close();
-            md5 = md5.Replace("-", "");
-            return md5;
+            return EncryptProvider.GetMd5ForFile(filePath);
         }
 
         /// <summary>
