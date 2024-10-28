@@ -21,9 +21,7 @@
 *描述：MDUtil
 *
 *****************************************************************************/
-using System;
 using System.IO;
-using System.Security.Cryptography;
 
 using Encrypt.Library.Core;
 
@@ -38,41 +36,53 @@ namespace Encrypt.Library
         /// md5
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="length"></param>
         /// <returns></returns>
-        public static byte[] GetMD5(this byte[] data)
+        public static byte[] GetMD5(this byte[] data, MD5Length length = MD5Length.L32)
         {
-            return EncryptProvider.Md5(data);
+            return EncryptProvider.Md5(data, length);
         }
 
         /// <summary>
         /// md5
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="length"></param>
         /// <returns></returns>
-        public static string GetMD5Str(this string data)
+        public static string GetMD5Str(this string data, MD5Length length = MD5Length.L32)
         {
             return EncryptProvider.Md5(data);
+        }
+        /// <summary>
+        /// md5
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string GetMD5Str(this byte[] data, MD5Length length = MD5Length.L32)
+        {
+            return EncryptProvider.GetMd5Str(data, length);
         }
 
         /// <summary>
         /// md5
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="stream"></param>
         /// <returns></returns>
-        public static string GetMD5Str(this byte[] data)
+        public static string GetMD5Str(this Stream stream, MD5Length length = MD5Length.L32)
         {
-            return EncryptProvider.GetMd5Str(data);
+            return EncryptProvider.GetMd5ForStream(stream, length);
         }
 
         /// <summary>
-        /// 计算文件的md5
+        /// md5
         /// </summary>
         /// <param name="filePath"></param>
+        /// <param name="length"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public static string GetMD5ForFile(this string filePath)
+        public static string GetMD5StrForFile(this string filePath, MD5Length length = MD5Length.L32)
         {
-            return EncryptProvider.GetMd5ForFile(filePath);
+            return EncryptProvider.GetMd5ForFile(filePath, length);
         }
 
         /// <summary>

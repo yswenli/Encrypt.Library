@@ -21,8 +21,6 @@
 *描述：RSAUtil
 *
 *****************************************************************************/
-using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 

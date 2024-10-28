@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Encrypt.Library.TestProject1
 {
     [TestClass]
@@ -36,6 +38,17 @@ namespace Encrypt.Library.TestProject1
             Assert.IsNotNull(c1);
         }
 
+        [TestMethod]
+        public void TestMethod3()
+        {
+            var str = "yswenli";
+            var bytes = Encoding.UTF8.GetBytes(str);
+            using (var stream = new MemoryStream(bytes))
+            {
+                var md5 = MD5Util.GetMD5Str(stream);
+                Assert.IsNotNull(md5);
+            }
+        }
 
     }
 }

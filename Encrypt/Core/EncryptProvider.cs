@@ -1339,23 +1339,45 @@ namespace Encrypt.Library.Core
         }
 
         /// <summary>
-        ///  md5
+        /// md5
         /// </summary>
         /// <param name="filePath"></param>
+        /// <param name="length"></param>
         /// <returns></returns>
-        public static string GetMd5ForFile(string filePath)
+        public static string GetMd5ForFile(string filePath, MD5Length length = MD5Length.L32)
         {
             if (!File.Exists(filePath)) return string.Empty;
+            string str_md5_out = string.Empty;
             using (MD5 md5 = MD5.Create())
             {
                 using (var fs = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     var hash = md5.ComputeHash(fs);
-                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    str_md5_out = length == MD5Length.L32
+                    ? BitConverter.ToString(hash)
+                    : BitConverter.ToString(hash, 4, 8);
+                    return str_md5_out.Replace("-", "").ToLowerInvariant();
                 }
             }
         }
-
+        /// <summary>
+        /// md5
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string GetMd5ForStream(Stream stream, MD5Length length = MD5Length.L32)
+        {
+            string str_md5_out = string.Empty;
+            using (MD5 md5 = MD5.Create())
+            {
+                var hash = md5.ComputeHash(stream);
+                str_md5_out = length == MD5Length.L32
+                    ? BitConverter.ToString(hash)
+                    : BitConverter.ToString(hash, 4, 8);
+                return str_md5_out.Replace("-", "").ToLowerInvariant();
+            }
+        }
 
         #endregion
 
