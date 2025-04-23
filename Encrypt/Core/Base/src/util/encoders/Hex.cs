@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Encoders
 {
@@ -21,9 +22,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
         public static string ToHexString(
-            byte[]	data,
-            int		off,
-            int		length)
+            byte[] data,
+            int off,
+            int length)
         {
             byte[] hex = Encode(data, off, length);
             return Strings.FromAsciiByteArray(hex);
@@ -46,9 +47,9 @@ namespace Org.BouncyCastle.Utilities.Encoders
          * @return a byte array containing the Hex encoded data.
          */
         public static byte[] Encode(
-            byte[]	data,
-            int		off,
-            int		length)
+            byte[] data,
+            int off,
+            int length)
         {
             MemoryStream bOut = new MemoryStream(length * 2);
 
@@ -63,8 +64,8 @@ namespace Org.BouncyCastle.Utilities.Encoders
          * @return the number of bytes produced.
          */
         public static int Encode(
-            byte[]	data,
-            Stream	outStream)
+            byte[] data,
+            Stream outStream)
         {
             return encoder.Encode(data, 0, data.Length, outStream);
         }
@@ -75,10 +76,10 @@ namespace Org.BouncyCastle.Utilities.Encoders
          * @return the number of bytes produced.
          */
         public static int Encode(
-            byte[]	data,
-            int		off,
-            int		length,
-            Stream	outStream)
+            byte[] data,
+            int off,
+            int length,
+            Stream outStream)
         {
             return encoder.Encode(data, off, length, outStream);
         }
@@ -120,8 +121,8 @@ namespace Org.BouncyCastle.Utilities.Encoders
          * @return the number of bytes produced.
          */
         public static int Decode(
-            string	data,
-            Stream	outStream)
+            string data,
+            Stream outStream)
         {
             return encoder.DecodeString(data, outStream);
         }
@@ -147,5 +148,47 @@ namespace Org.BouncyCastle.Utilities.Encoders
         {
             return encoder.DecodeStrict(str, off, len);
         }
+
+        #region 互相转换
+
+
+        /// <summary>
+        /// 将字节数组转换成16进制字符串
+        /// </summary>
+        /// <param name="byteArray"></param>
+        /// <returns></returns>
+        public static string ByteArrayToHexString(byte[] byteArray)
+        {
+            StringBuilder hex = new StringBuilder(byteArray.Length * 2);
+            foreach (byte b in byteArray)
+            {
+                hex.AppendFormat("{0:x2}", b);
+            }
+            return hex.ToString();
+        }
+        /// <summary>
+        /// 将16进制字符串转换成字节数组
+        /// </summary>
+        /// <param name="hexString"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static byte[] HexStringToByteArray(string hexString)
+        {
+            hexString = hexString.Replace(" ", "");
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException("无效的十六进制字符串，长度必须为偶数。");
+            }
+
+            byte[] byteArray = new byte[hexString.Length / 2];
+            for (int i = 0; i < hexString.Length; i += 2)
+            {
+                byteArray[i / 2] = Convert.ToByte(hexString.Substring(i, 2), 16);
+            }
+
+            return byteArray;
+        }
+
+        #endregion
     }
 }

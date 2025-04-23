@@ -21,9 +21,13 @@
 *描述：AESUtil
 *
 *****************************************************************************/
+using System.Text;
+
 using Encrypt.Library.Core;
 using Encrypt.Library.Core.Extensions;
 using Encrypt.Library.Core.Internal;
+
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Encrypt.Library
 {
@@ -90,15 +94,23 @@ namespace Encrypt.Library
         {
             return EncryptProvider.AESDecrypt(data, key.GetKey());
         }
+
         /// <summary>
         /// AES encrypt without iv (ECB mode)
         /// </summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
+        /// <param name="withBase64"></param>
         /// <returns></returns>
-        public static string Encrypt(string data, string key)
+        public static string Encrypt(string data, string key, bool withBase64 = true)
         {
-            return EncryptProvider.AESEncrypt(data, key.GetKey());
+            if (withBase64)
+                return EncryptProvider.AESEncrypt(data, key.GetKey());
+            else
+            {
+                var bdata = Encoding.UTF8.GetBytes(data);
+                return Hex.ByteArrayToHexString(Encrypt(bdata, key));
+            }
         }
 
         /// <summary>
@@ -106,12 +118,18 @@ namespace Encrypt.Library
         /// </summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
+        /// <param name="withBase64"></param>
         /// <returns></returns>
-        public static string Decrypt(string data, string key)
+        public static string Decrypt(string data, string key, bool withBase64 = true)
         {
-            return EncryptProvider.AESDecrypt(data, key.GetKey());
+            if (withBase64)
+                return EncryptProvider.AESDecrypt(data, key.GetKey());
+            else
+            {
+                var bdata = Hex.HexStringToByteArray(data);
+                return Encoding.UTF8.GetString(Decrypt(bdata, key));
+            }
         }
-
         /// <summary>
         /// AES encrypt bytes with iv (CBC mode)
         /// </summary>

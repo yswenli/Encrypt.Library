@@ -50,5 +50,26 @@ namespace Encrypt.Library.TestProject1
             }
         }
 
+        /// <summary>
+        /// ≤‚ ‘aes
+        /// </summary>
+        [TestMethod]
+        public void TestMethod4()
+        {
+            var key = "yswenli";
+
+            var data = "aaa";
+
+            var encrypt = AESUtil.Encrypt(key, data);
+            var result = AESUtil.Decrypt(encrypt, key);
+
+            Assert.IsTrue(data == result);
+
+            var encrypt2 = AESUtil.Encrypt(key, data);
+            var result2 = AESUtil.Decrypt(encrypt2, key);
+
+            Assert.IsTrue(data == result2);
+        }
+
     }
 }
