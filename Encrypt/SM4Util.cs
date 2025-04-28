@@ -26,6 +26,7 @@ using System.Text;
 
 using Encrypt.Library.Core;
 using Encrypt.Library.Core.Domestic;
+using Encrypt.Library.Extensions;
 
 namespace Encrypt.Library
 {
@@ -42,7 +43,7 @@ namespace Encrypt.Library
         /// <summary>
         /// iv,des iv length is 8 bit
         /// </summary>
-        public static string IV { get; private set; }
+        public static string IV { get; private set; }        
 
         /// <summary>
         /// Sm4算法  
@@ -64,6 +65,8 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Encrypt(byte[] key, byte[] iv, byte[] date, Sm4Mode model)
         {
+            key.ValideKey();
+
             Sm4Context ctx = new Sm4Context
             {
                 IsPadding = true
@@ -90,6 +93,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Encrypt(byte[] key, byte[] iv, byte[] date)
         {
+            key.ValideKey();
             return Encrypt(key, iv, date, Sm4Mode.CBC);
         }
         /// <summary>
@@ -100,6 +104,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Encrypt(byte[] key, byte[] date)
         {
+            key.ValideKey();
             return Encrypt(key, null, date, Sm4Mode.ECB);
         }
         /// <summary>
@@ -112,6 +117,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Decrypt(byte[] key, byte[] iv, byte[] date, Sm4Mode model)
         {
+            key.ValideKey();
             Sm4Context ctx = new Sm4Context
             {
                 IsPadding = true
@@ -136,6 +142,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Decrypt(byte[] key, byte[] iv, byte[] date)
         {
+            key.ValideKey();
             return Decrypt(key, iv, date, Sm4Mode.CBC);
         }
         /// <summary>
@@ -146,6 +153,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Decrypt(byte[] key, byte[] date)
         {
+            key.ValideKey();
             return Decrypt(key, null, date, Sm4Mode.ECB);
         }
         /// <summary>
@@ -158,6 +166,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Encrypt(string key, string iv, string date, Sm4Mode model)
         {
+            key.ValideKey();
             return Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(key),
                 Encoding.UTF8.GetBytes(iv),
                 Encoding.UTF8.GetBytes(date), model));
@@ -172,9 +181,34 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Decrypt(string key, string iv, string base64, Sm4Mode model)
         {
+            key.ValideKey();
             return Encoding.UTF8.GetString(Decrypt(Encoding.UTF8.GetBytes(key),
                 Encoding.UTF8.GetBytes(iv),
                 Convert.FromBase64String(base64), model));
+        }
+
+        /// <summary>
+        /// 加密
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static string Encrypt(string key, string text)
+        {
+            key.ValideKey();
+            return Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(key), null, Encoding.UTF8.GetBytes(text), Sm4Mode.ECB));
+        }
+        /// <summary>
+        /// 解密
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="encryptText"></param>
+        /// <returns></returns>
+        public static string Decrypt(string key, string encryptText)
+        {
+            key.ValideKey();
+            var data = Convert.FromBase64String(encryptText);
+            return Encoding.UTF8.GetString(Decrypt(Encoding.UTF8.GetBytes(key), null, data, Sm4Mode.ECB));
         }
     }
 }

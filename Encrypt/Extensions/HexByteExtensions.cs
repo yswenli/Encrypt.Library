@@ -21,7 +21,6 @@
 *描述：二进制、字节转换
 *
 *****************************************************************************/
-using System.Globalization;
 using System.Text;
 
 namespace Encrypt.Library.Extensions

@@ -71,5 +71,31 @@ namespace Encrypt.Library.TestProject1
             Assert.IsTrue(data == result2);
         }
 
+
+        /// <summary>
+        /// ≤‚ ‘sm4
+        /// </summary>
+        [TestMethod]
+        public void TestMethod5()
+        {
+            var key = "yswenliyswenli16";
+            key = "yswenliyswenli16";
+            key = "yswenliyswenliyswenli024";
+
+            key = "yswenli";
+
+            var data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+            var encrypt = SM4Util.Encrypt(key, data);
+            var result = SM4Util.Decrypt(key, encrypt);
+
+            Assert.IsTrue(data == result);
+
+            var encrypt2 = SM4Util.Encrypt(key, data);
+            var result2 = SM4Util.Decrypt(key, encrypt2);
+
+            Assert.IsTrue(data == result2);
+        }
+
     }
 }
