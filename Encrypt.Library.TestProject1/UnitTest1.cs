@@ -51,7 +51,7 @@ namespace Encrypt.Library.TestProject1
         }
 
         /// <summary>
-        /// ²âÊÔaes
+        /// ï¿½ï¿½ï¿½ï¿½aes
         /// </summary>
         [TestMethod]
         public void TestMethod4()
@@ -73,7 +73,7 @@ namespace Encrypt.Library.TestProject1
 
 
         /// <summary>
-        /// ²âÊÔsm4
+        /// ï¿½ï¿½ï¿½ï¿½sm4
         /// </summary>
         [TestMethod]
         public void TestMethod5()

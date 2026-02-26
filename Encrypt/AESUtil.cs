@@ -22,6 +22,8 @@
 *
 *****************************************************************************/
 using System.Text;
+using System.Security.Cryptography;
+using System.IO;
 
 using Encrypt.Library.Core;
 using Encrypt.Library.Core.Extensions;
@@ -175,5 +177,33 @@ namespace Encrypt.Library
         {
             return EncryptProvider.AESDecrypt(data, key.GetKey(), vector.GetIV());
         }
+
+        #region 企业微信消息加解密相关方法
+
+        /// <summary>
+        /// 企业微信消息加密
+        /// </summary>
+        /// <param name="data">需要加密的明文</param>
+        /// <param name="key">AES密钥（base64编码）</param>
+        /// <param name="receiveId">接收者ID</param>
+        /// <returns>加密后的字符串（base64编码）</returns>
+        public static string EncryptForWeChat(string data, string key, string receiveId)
+        {
+            return EncryptProvider.AESEncryptForWeChat(data, key, receiveId);
+        }
+
+        /// <summary>
+        /// 企业微信消息解密
+        /// </summary>
+        /// <param name="encryptedData">加密的密文（base64编码）</param>
+        /// <param name="key">AES密钥（base64编码）</param>
+        /// <param name="receiveId">接收者ID</param>
+        /// <returns>解密后的明文</returns>
+        public static string DecryptForWeChat(string encryptedData, string key, string receiveId)
+        {
+            return EncryptProvider.AESDecryptForWeChat(encryptedData, key, receiveId);
+        }
+
+        #endregion
     }
 }

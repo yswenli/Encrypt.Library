@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -419,6 +420,238 @@ namespace Encrypt.Library.Core
             }
         }
 
+
+        #endregion
+
+        #region 企业微信消息加解密相关方法
+
+        /// <summary>
+        /// PKCS7填充块大小
+        /// </summary>
+        private static int PKCS7_BLOCK_SIZE = 32;
+
+        /// <summary>
+        /// 对需要加密的明文进行PKCS7填充补位
+        /// </summary>
+        /// <param name="data">需要进行填充补位操作的明文</param>
+        /// <returns>补齐明文字符串</returns>
+        private static byte[] PKCS7Encode(byte[] data)
+        {
+            int textLength = data.Length;
+            // 计算需要填充的位数
+            int amountToPad = PKCS7_BLOCK_SIZE - (textLength % PKCS7_BLOCK_SIZE);
+            if (amountToPad == 0)
+            {
+                amountToPad = PKCS7_BLOCK_SIZE;
+            }
+            // 获得补位所用的字节
+            byte pad = (byte)amountToPad;
+            // 进行填充
+            byte[] paddedData = new byte[textLength + amountToPad];
+            Array.Copy(data, paddedData, textLength);
+            for (int i = textLength; i < paddedData.Length; i++)
+            {
+                paddedData[i] = pad;
+            }
+            return paddedData;
+        }
+
+        /// <summary>
+        /// 删除解密后明文的PKCS7补位字符
+        /// </summary>
+        /// <param name="data">解密后的明文</param>
+        /// <returns>删除补位字符后的明文</returns>
+        private static byte[] PKCS7Decode(byte[] data)
+        {
+            if (data.Length == 0)
+            {
+                return data;
+            }
+            byte pad = data[data.Length - 1];
+            if (pad < 1 || pad > PKCS7_BLOCK_SIZE)
+            {
+                pad = 0;
+            }
+            int newLength = data.Length - pad;
+            byte[] result = new byte[newLength];
+            Array.Copy(data, result, newLength);
+            return result;
+        }
+
+        /// <summary>
+        /// 生成16位随机字符串
+        /// </summary>
+        /// <returns>16位随机字符串</returns>
+        private static string GetRandomStr()
+        {
+            Random random = new Random();
+            var chars = "0123456789".ToCharArray();
+            var sb = new StringBuilder(16);
+            for (int i = 0; i < 16; i++)
+            {
+                sb.Append(chars[random.Next(chars.Length)]);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 企业微信消息加密
+        /// </summary>
+        /// <param name="data">需要加密的明文</param>
+        /// <param name="key">AES密钥（base64编码）</param>
+        /// <param name="receiveId">接收者ID</param>
+        /// <returns>加密后的字符串（base64编码）</returns>
+        public static string AESEncryptForWeChat(string data, string key, string receiveId)
+        {
+            try
+            {
+                // 解码base64密钥
+                string keyWithPadding = key + "=";
+                byte[] keyBytes = Convert.FromBase64String(keyWithPadding);
+                if (keyBytes.Length != 32)
+                {
+                    throw new ArgumentException("AES密钥长度必须为32字节");
+                }
+
+                // 生成16位随机字符串
+                string randomStr = GetRandomStr();
+                byte[] randomStrBytes = Encoding.UTF8.GetBytes(randomStr);
+
+                // 计算数据长度（网络字节序）
+                byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+                byte[] lengthBytes = BitConverter.GetBytes(dataBytes.Length);
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(lengthBytes);
+                }
+
+                // 拼接数据：随机字符串 + 数据长度 + 数据 + receiveId
+                byte[] receiveIdBytes = Encoding.UTF8.GetBytes(receiveId);
+                byte[] combinedBytes = new byte[randomStrBytes.Length + lengthBytes.Length + dataBytes.Length + receiveIdBytes.Length];
+                Buffer.BlockCopy(randomStrBytes, 0, combinedBytes, 0, randomStrBytes.Length);
+                Buffer.BlockCopy(lengthBytes, 0, combinedBytes, randomStrBytes.Length, lengthBytes.Length);
+                Buffer.BlockCopy(dataBytes, 0, combinedBytes, randomStrBytes.Length + lengthBytes.Length, dataBytes.Length);
+                Buffer.BlockCopy(receiveIdBytes, 0, combinedBytes, randomStrBytes.Length + lengthBytes.Length + dataBytes.Length, receiveIdBytes.Length);
+
+                // PKCS7填充
+                byte[] paddedBytes = PKCS7Encode(combinedBytes);
+
+                // AES-CBC加密
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = keyBytes;
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.None;
+                    // IV使用密钥的前16字节
+                    byte[] iv = new byte[16];
+                    Array.Copy(keyBytes, iv, 16);
+                    aes.IV = iv;
+
+                    using (ICryptoTransform encryptor = aes.CreateEncryptor())
+                    using (MemoryStream msEncrypt = new MemoryStream())
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        csEncrypt.Write(paddedBytes, 0, paddedBytes.Length);
+                        csEncrypt.FlushFinalBlock();
+                        byte[] encryptedBytes = msEncrypt.ToArray();
+                        // Base64编码
+                        return Convert.ToBase64String(encryptedBytes);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("企业微信消息加密失败", ex);
+            }
+        }
+
+        /// <summary>
+        /// 企业微信消息解密
+        /// </summary>
+        /// <param name="encryptedData">加密的密文（base64编码）</param>
+        /// <param name="key">AES密钥（base64编码）</param>
+        /// <param name="receiveId">接收者ID</param>
+        /// <returns>解密后的明文</returns>
+        public static string AESDecryptForWeChat(string encryptedData, string key, string receiveId)
+        {
+            try
+            {
+                // 解码base64密钥
+                string keyWithPadding = key + "=";
+                byte[] keyBytes = Convert.FromBase64String(keyWithPadding);
+                if (keyBytes.Length != 32)
+                {
+                    throw new ArgumentException("AES密钥长度必须为32字节");
+                }
+
+                // 解码base64密文
+                byte[] encryptedBytes = Convert.FromBase64String(encryptedData);
+
+                // AES-CBC解密
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = keyBytes;
+                    aes.Mode = CipherMode.CBC;
+                    aes.Padding = PaddingMode.None;
+                    // IV使用密钥的前16字节
+                    byte[] iv = new byte[16];
+                    Array.Copy(keyBytes, iv, 16);
+                    aes.IV = iv;
+
+                    using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                    using (MemoryStream msDecrypt = new MemoryStream(encryptedBytes))
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    using (MemoryStream msPlain = new MemoryStream())
+                    {
+                        csDecrypt.CopyTo(msPlain);
+                        byte[] plainBytes = msPlain.ToArray();
+
+                        // 去除PKCS7填充
+                        plainBytes = PKCS7Decode(plainBytes);
+
+                        // 去除16位随机字符串
+                        int randomStrLength = 16;
+                        if (plainBytes.Length < randomStrLength + 4)
+                        {
+                            throw new Exception("解密后数据长度不足");
+                        }
+
+                        // 解析4字节的网络字节序长度
+                        byte[] lengthBytes = new byte[4];
+                        Array.Copy(plainBytes, randomStrLength, lengthBytes, 0, 4);
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Array.Reverse(lengthBytes);
+                        }
+                        int dataLength = BitConverter.ToInt32(lengthBytes, 0);
+
+                        // 提取实际数据
+                        int dataStart = randomStrLength + 4;
+                        int dataEnd = dataStart + dataLength;
+                        if (dataEnd > plainBytes.Length)
+                        {
+                            throw new Exception("解密后数据长度不足");
+                        }
+                        byte[] dataBytes = new byte[dataLength];
+                        Array.Copy(plainBytes, dataStart, dataBytes, 0, dataLength);
+                        string data = Encoding.UTF8.GetString(dataBytes);
+
+                        // 提取并验证receiveId
+                        string actualReceiveId = Encoding.UTF8.GetString(plainBytes, dataEnd, plainBytes.Length - dataEnd);
+                        if (actualReceiveId != receiveId)
+                        {
+                            throw new Exception("receiveId验证失败");
+                        }
+
+                        return data;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("企业微信消息解密失败", ex);
+            }
+        }
 
         #endregion
 
@@ -1445,6 +1678,32 @@ namespace Encrypt.Library.Core
                 str_sha1_out = str_sha1_out.Replace("-", "");
                 return str_sha1_out;
             }
+        }
+
+        /// <summary>
+        /// 获取企业微信消息签名
+        /// </summary>
+        /// <param name="token">票据</param>
+        /// <param name="timestamp">时间戳</param>
+        /// <param name="nonce">随机字符串</param>
+        /// <param name="encrypt">密文</param>
+        /// <returns>SHA1签名</returns>
+        public static string Sha1ForWeChat(string token, string timestamp, string nonce, string encrypt)
+        {
+            // 确保所有输入都是字符串类型
+            var sortList = new List<string>
+            {
+                token?.ToString(),
+                timestamp?.ToString(),
+                nonce?.ToString(),
+                encrypt?.ToString()
+            };
+            // 排序
+            sortList.Sort();
+            // 连接成一个字符串
+            var combinedString = string.Join("", sortList);
+            // 计算SHA1哈希
+            return Sha1(combinedString);
         }
         #endregion
 

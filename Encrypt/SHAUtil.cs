@@ -74,5 +74,18 @@ namespace Encrypt.Library
         {
             return string.IsNullOrEmpty(key) ? EncryptProvider.Sha512(data) : EncryptProvider.HMACSHA512(data, key);
         }
+
+        /// <summary>
+        /// 获取企业微信消息签名
+        /// </summary>
+        /// <param name="token">票据</param>
+        /// <param name="timestamp">时间戳</param>
+        /// <param name="nonce">随机字符串</param>
+        /// <param name="encrypt">密文</param>
+        /// <returns>SHA1签名</returns>
+        public static string GetSHA1ForWeChat(string token, string timestamp, string nonce, string encrypt)
+        {
+            return EncryptProvider.Sha1ForWeChat(token, timestamp, nonce, encrypt);
+        }
     }
 }
