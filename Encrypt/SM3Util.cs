@@ -46,8 +46,8 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] ToSM3byte(string data, string key)
         {
-            byte[] msg1 = Encoding.Default.GetBytes(data);
-            byte[] key1 = Encoding.Default.GetBytes(key);
+            byte[] msg1 = Encoding.UTF8.GetBytes(data);
+            byte[] key1 = Encoding.UTF8.GetBytes(key);
 
             KeyParameter keyParameter = new KeyParameter(key1);
             SM3Digest sm3 = new SM3Digest();
@@ -68,7 +68,7 @@ namespace Encrypt.Library
         /// <returns>二进制数组</returns>
         public static byte[] ToSM3byte(string data)
         {
-            var msg = Encoding.Default.GetBytes(data);//把字符串转成16进制的ASCII码 
+            var msg = Encoding.UTF8.GetBytes(data);//把字符串转成16进制的ASCII码 
             SM3Digest sm3 = new SM3Digest();
             sm3.BlockUpdate(msg, 0, msg.Length);
             byte[] md = new byte[sm3.GetDigestSize()];//SM3算法产生的哈希值大小
@@ -83,12 +83,12 @@ namespace Encrypt.Library
         /// <returns>16进制字符串</returns>
         public static string ToSM3HexStr(string data)
         {
-            var msg = Encoding.Default.GetBytes(data);//把字符串转成16进制的ASCII码 
+            var msg = Encoding.UTF8.GetBytes(data);//把字符串转成16进制的ASCII码 
             SM3Digest sm3 = new SM3Digest();
             sm3.BlockUpdate(msg, 0, msg.Length);
             byte[] md = new byte[sm3.GetDigestSize()];//SM3算法产生的哈希值大小
             sm3.DoFinal(md, 0);
-            return new UTF8Encoding().GetString(Hex.Encode(md));
+            return Encoding.UTF8.GetString(Hex.Encode(md));
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string ToSM3HexStr(string data, string key)
         {
-            byte[] msg1 = Encoding.Default.GetBytes(data);
+            byte[] msg1 = Encoding.UTF8.GetBytes(data);
             byte[] key1 = HexStringToBytes(key);
 
             KeyParameter keyParameter = new KeyParameter(key1);
@@ -111,7 +111,7 @@ namespace Encrypt.Library
             byte[] result = new byte[mac.GetMacSize()];
 
             mac.DoFinal(result, 0);
-            return new UTF8Encoding().GetString(Hex.Encode(result));
+            return Encoding.UTF8.GetString(Hex.Encode(result));
         }
 
         /// <summary>

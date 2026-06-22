@@ -82,7 +82,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Encrypt(string data, string key, string vector)
         {
-            return Encoding.UTF8.GetString(Encrypt(Encoding.UTF8.GetBytes(data), key, vector));
+            return Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(data), key, vector));
         }
         /// <summary>
         /// Decrypt
@@ -93,7 +93,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Decrypt(string data, string key, string vector)
         {
-            return Encoding.UTF8.GetString(Decrypt(Encoding.UTF8.GetBytes(data), key, vector));
+            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(data), key, vector));
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Encrypt(string data, string key)
         {
-            return Encoding.UTF8.GetString(Encrypt(Encoding.UTF8.GetBytes(data), key));
+            return Convert.ToBase64String(Encrypt(Encoding.UTF8.GetBytes(data), key));
         }
         /// <summary>
         /// Decrypt
@@ -134,7 +134,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static string Decrypt(string data, string key)
         {
-            return Encoding.UTF8.GetString(Decrypt(Encoding.UTF8.GetBytes(data), key));
+            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(data), key));
         }
     }
 }

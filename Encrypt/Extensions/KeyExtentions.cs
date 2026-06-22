@@ -93,10 +93,13 @@ namespace Encrypt.Library.Extensions
         /// <returns></returns>
         public static string GenerateRandomKey(int length)
         {
-            var random = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%_";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(chars.Length)];
+            }
+            return new string(result);
         }
 
 

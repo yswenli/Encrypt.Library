@@ -21,9 +21,9 @@
 *描述：MDUtil
 *
 *****************************************************************************/
-using System.IO;
-
 using Encrypt.Library.Core;
+
+using System.IO;
 
 namespace Encrypt.Library
 {
@@ -84,6 +84,20 @@ namespace Encrypt.Library
         {
             return EncryptProvider.GetMd5ForFile(filePath, length);
         }
+
+#if NET6_0_OR_GREATER
+        /// <summary>
+        /// md5 (async)
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="length"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<string> GetMD5StrForFileAsync(this string filePath, MD5Length length = MD5Length.L32, CancellationToken cancellationToken = default)
+        {
+            return await EncryptProvider.GetMd5ForFileAsync(filePath, length, cancellationToken).ConfigureAwait(false);
+        }
+#endif
 
         /// <summary>
         /// GetHMACMD5

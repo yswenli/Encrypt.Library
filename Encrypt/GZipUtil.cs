@@ -40,20 +40,21 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Compress(byte[] data)
         {
-            MemoryStream ms = new MemoryStream(data);
-            GZipStream compressedzipStream = new GZipStream(ms, CompressionMode.Compress);
-            MemoryStream outBuffer = new MemoryStream();
-            byte[] block = new byte[1024];
-            while (true)
+            using (MemoryStream ms = new MemoryStream(data))
+            using (GZipStream compressedzipStream = new GZipStream(ms, CompressionMode.Compress))
+            using (MemoryStream outBuffer = new MemoryStream())
             {
-                int bytesRead = compressedzipStream.Read(block, 0, block.Length);
-                if (bytesRead <= 0)
-                    break;
-                else
-                    outBuffer.Write(block, 0, bytesRead);
+                byte[] block = new byte[1024];
+                while (true)
+                {
+                    int bytesRead = compressedzipStream.Read(block, 0, block.Length);
+                    if (bytesRead <= 0)
+                        break;
+                    else
+                        outBuffer.Write(block, 0, bytesRead);
+                }
+                return outBuffer.ToArray();
             }
-            compressedzipStream.Close();
-            return outBuffer.ToArray();
         }
         /// <summary>
         /// 解压缩
@@ -62,20 +63,21 @@ namespace Encrypt.Library
         /// <returns></returns>
         public static byte[] Decompress(byte[] zippedData)
         {
-            MemoryStream ms = new MemoryStream(zippedData);
-            GZipStream compressedzipStream = new GZipStream(ms, CompressionMode.Decompress);
-            MemoryStream outBuffer = new MemoryStream();
-            byte[] block = new byte[1024];
-            while (true)
+            using (MemoryStream ms = new MemoryStream(zippedData))
+            using (GZipStream compressedzipStream = new GZipStream(ms, CompressionMode.Decompress))
+            using (MemoryStream outBuffer = new MemoryStream())
             {
-                int bytesRead = compressedzipStream.Read(block, 0, block.Length);
-                if (bytesRead <= 0)
-                    break;
-                else
-                    outBuffer.Write(block, 0, bytesRead);
+                byte[] block = new byte[1024];
+                while (true)
+                {
+                    int bytesRead = compressedzipStream.Read(block, 0, block.Length);
+                    if (bytesRead <= 0)
+                        break;
+                    else
+                        outBuffer.Write(block, 0, bytesRead);
+                }
+                return outBuffer.ToArray();
             }
-            compressedzipStream.Close();
-            return outBuffer.ToArray();
         }
 
         /// <summary>

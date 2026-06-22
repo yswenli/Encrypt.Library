@@ -40,12 +40,13 @@ namespace Encrypt.Library
         private static int timestampLeftShift = sequenceBits + workerIdBits; //时间戳左移动位数就是机器码和计数器总字节数
         private static long sequenceMask = -1L ^ -1L << sequenceBits; //一微秒内可以产生计数，如果达到该值则等到下一微妙在进行生成
         private static long lastTimestamp = -1L;
-        private static object lockObj = new object();
+        private static readonly object lockObj = new object();
 
         /// <summary>
         /// 设置机器码
         /// </summary>
         /// <param name="workerId">机器码</param>
+        [Obsolete("Changing workerId at runtime is unsafe and may cause duplicate IDs. Set workerId via constructor or static initializer instead.")]
         public static void SetWorkerID(long workerId)
         {
             SnowflakeIDcreator.workerId = workerId;
@@ -106,7 +107,7 @@ namespace Encrypt.Library
         /// <returns></returns>
         private static long TimeGen()
         {
-            return (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
     }
 }

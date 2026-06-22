@@ -21,15 +21,13 @@
 *描述：AESUtil
 *
 *****************************************************************************/
-using System.Text;
-using System.Security.Cryptography;
-using System.IO;
-
 using Encrypt.Library.Core;
 using Encrypt.Library.Core.Extensions;
 using Encrypt.Library.Core.Internal;
 
 using Org.BouncyCastle.Utilities.Encoders;
+
+using System.Text;
 
 namespace Encrypt.Library
 {

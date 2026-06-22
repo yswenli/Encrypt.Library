@@ -21,12 +21,12 @@
 *描述：Sm4算法  
 *
 *****************************************************************************/
-using System;
-using System.Text;
-
 using Encrypt.Library.Core;
 using Encrypt.Library.Core.Domestic;
 using Encrypt.Library.Extensions;
+
+using System;
+using System.Text;
 
 namespace Encrypt.Library
 {

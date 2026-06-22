@@ -60,12 +60,12 @@ namespace Encrypt.Library.TestProject1
 
             var data = "aaa";
 
-            var encrypt = AESUtil.Encrypt(key, data);
+            var encrypt = AESUtil.Encrypt(data, key);
             var result = AESUtil.Decrypt(encrypt, key);
 
             Assert.IsTrue(data == result);
 
-            var encrypt2 = AESUtil.Encrypt(key, data);
+            var encrypt2 = AESUtil.Encrypt(data, key);
             var result2 = AESUtil.Decrypt(encrypt2, key);
 
             Assert.IsTrue(data == result2);
@@ -79,10 +79,6 @@ namespace Encrypt.Library.TestProject1
         public void TestMethod5()
         {
             var key = "yswenliyswenli16";
-            key = "yswenliyswenli16";
-            key = "yswenliyswenliyswenli024";
-
-            key = "yswenli";
 
             var data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 

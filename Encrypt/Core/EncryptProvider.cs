@@ -1,13 +1,13 @@
+using Encrypt.Library.Core.Extensions.Internal;
+using Encrypt.Library.Core.Internal;
+using Encrypt.Library.Core.Shared;
+using Encrypt.Library.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-
-using Encrypt.Library.Core.Extensions.Internal;
-using Encrypt.Library.Core.Internal;
-using Encrypt.Library.Core.Shared;
-using Encrypt.Library.Extensions;
 
 namespace Encrypt.Library.Core
 {
@@ -16,37 +16,21 @@ namespace Encrypt.Library.Core
         #region Common
 
         /// <summary>
-        /// The single Random Generator
+        /// Generate a cryptographically secure random key
         /// </summary>
-        private static Random random;
-
-        /// <summary>
-        /// Generate a random key
-        /// </summary>
-        /// <param name="n">key length，IV is 16，Key is 32</param>
+        /// <param name="length">key length，IV is 16，Key is 32</param>
         /// <returns>return random value</returns>
         private static string GetRandomStr(int length)
         {
-            char[] arrChar = new char[]{
-           'a','b','d','c','e','f','g','h','i','j','k','l','m','n','p','r','q','s','t','u','v','w','z','y','x',
-           '0','1','2','3','4','5','6','7','8','9',
-           'A','B','C','D','E','F','G','H','I','J','K','L','M','N','Q','P','R','T','S','V','U','W','X','Y','Z'
-          };
+            const string arrChar = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-            StringBuilder num = new StringBuilder();
-
-            //New stronger Random Generator
-            if (random == null)
-            {
-                random = new Random();
-            }
-
+            var result = new char[length];
             for (int i = 0; i < length; i++)
             {
-                num.Append(arrChar[random.Next(0, arrChar.Length)].ToString());
+                result[i] = arrChar[RandomNumberGenerator.GetInt32(arrChar.Length)];
             }
 
-            return num.ToString();
+            return new string(result);
         }
 
 
@@ -124,24 +108,17 @@ namespace Encrypt.Library.Core
             byte[] encryptData = null; // encrypted data
             using (Aes Aes = Aes.Create())
             {
-                try
+                using (MemoryStream memory = new MemoryStream())
                 {
-                    using (MemoryStream memory = new MemoryStream())
+                    using (CryptoStream Encryptor = new CryptoStream(memory,
+                     Aes.CreateEncryptor(bKey, bVector),
+                     CryptoStreamMode.Write))
                     {
-                        using (CryptoStream Encryptor = new CryptoStream(memory,
-                         Aes.CreateEncryptor(bKey, bVector),
-                         CryptoStreamMode.Write))
-                        {
-                            Encryptor.Write(plainBytes, 0, plainBytes.Length);
-                            Encryptor.FlushFinalBlock();
+                        Encryptor.Write(plainBytes, 0, plainBytes.Length);
+                        Encryptor.FlushFinalBlock();
 
-                            encryptData = memory.ToArray();
-                        }
+                        encryptData = memory.ToArray();
                     }
-                }
-                catch
-                {
-                    encryptData = null;
                 }
                 return encryptData;
             }
@@ -203,29 +180,22 @@ namespace Encrypt.Library.Core
 
             using (Aes Aes = Aes.Create())
             {
-                try
+                using (MemoryStream memory = new MemoryStream(encryptedBytes))
                 {
-                    using (MemoryStream memory = new MemoryStream(encryptedBytes))
+                    using (CryptoStream decryptor = new CryptoStream(memory, Aes.CreateDecryptor(bKey, bVector), CryptoStreamMode.Read))
                     {
-                        using (CryptoStream decryptor = new CryptoStream(memory, Aes.CreateDecryptor(bKey, bVector), CryptoStreamMode.Read))
+                        using (MemoryStream tempMemory = new MemoryStream())
                         {
-                            using (MemoryStream tempMemory = new MemoryStream())
+                            byte[] Buffer = new byte[1024];
+                            Int32 readBytes = 0;
+                            while ((readBytes = decryptor.Read(Buffer, 0, Buffer.Length)) > 0)
                             {
-                                byte[] Buffer = new byte[1024];
-                                Int32 readBytes = 0;
-                                while ((readBytes = decryptor.Read(Buffer, 0, Buffer.Length)) > 0)
-                                {
-                                    tempMemory.Write(Buffer, 0, readBytes);
-                                }
-
-                                decryptedData = tempMemory.ToArray();
+                                tempMemory.Write(Buffer, 0, readBytes);
                             }
+
+                            decryptedData = tempMemory.ToArray();
                         }
                     }
-                }
-                catch
-                {
-                    decryptedData = null;
                 }
 
                 return decryptedData;
@@ -258,16 +228,9 @@ namespace Encrypt.Library.Core
 
                     using (CryptoStream cryptoStream = new CryptoStream(memory, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        try
-                        {
-                            cryptoStream.Write(plainBytes, 0, plainBytes.Length);
-                            cryptoStream.FlushFinalBlock();
-                            return memory.ToArray();
-                        }
-                        catch (Exception ex)
-                        {
-                            return null;
-                        }
+                        cryptoStream.Write(plainBytes, 0, plainBytes.Length);
+                        cryptoStream.FlushFinalBlock();
+                        return memory.ToArray();
                     }
                 }
             }
@@ -289,40 +252,33 @@ namespace Encrypt.Library.Core
             byte[] bKey = new byte[32];
             Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
 
-            try
+            byte[] decryptedData = null; // decrypted data
+
+            using (MemoryStream memory = new MemoryStream(encryptedBytes))
             {
-                byte[] decryptedData = null; // decrypted data
-
-                using (MemoryStream memory = new MemoryStream(encryptedBytes))
+                using (Aes aes = Aes.Create())
                 {
-                    using (Aes aes = Aes.Create())
+                    aes.Mode = CipherMode.ECB;
+                    aes.Padding = PaddingMode.PKCS7;
+                    aes.KeySize = 256;
+                    aes.Key = bKey;
+
+                    using (CryptoStream decryptor = new CryptoStream(memory, aes.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        aes.Mode = CipherMode.ECB;
-                        aes.Padding = PaddingMode.PKCS7;
-                        aes.KeySize = 256;
-                        aes.Key = bKey;
-
-                        using (CryptoStream decryptor = new CryptoStream(memory, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                        using (MemoryStream tempMemory = new MemoryStream())
                         {
-                            using (MemoryStream tempMemory = new MemoryStream())
+                            byte[] buffer = new byte[1024];
+                            Int32 readBytes = 0;
+                            while ((readBytes = decryptor.Read(buffer, 0, buffer.Length)) > 0)
                             {
-                                byte[] buffer = new byte[1024];
-                                Int32 readBytes = 0;
-                                while ((readBytes = decryptor.Read(buffer, 0, buffer.Length)) > 0)
-                                {
-                                    tempMemory.Write(buffer, 0, readBytes);
-                                }
-
-                                decryptedData = tempMemory.ToArray();
-                                return decryptedData;
+                                tempMemory.Write(buffer, 0, readBytes);
                             }
+
+                            decryptedData = tempMemory.ToArray();
+                            return decryptedData;
                         }
                     }
                 }
-            }
-            catch
-            {
-                return null;
             }
         }
         /// <summary>
@@ -352,16 +308,9 @@ namespace Encrypt.Library.Core
 
                     using (CryptoStream cryptoStream = new CryptoStream(memory, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        try
-                        {
-                            cryptoStream.Write(plainBytes, 0, plainBytes.Length);
-                            cryptoStream.FlushFinalBlock();
-                            return Convert.ToBase64String(memory.ToArray());
-                        }
-                        catch (Exception ex)
-                        {
-                            return null;
-                        }
+                        cryptoStream.Write(plainBytes, 0, plainBytes.Length);
+                        cryptoStream.FlushFinalBlock();
+                        return Convert.ToBase64String(memory.ToArray());
                     }
                 }
             }
@@ -383,40 +332,90 @@ namespace Encrypt.Library.Core
             byte[] bKey = new byte[32];
             Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
 
-            try
+            byte[] decryptedData = null; // decrypted data
+
+            using (MemoryStream memory = new MemoryStream(encryptedBytes))
             {
-                byte[] decryptedData = null; // decrypted data
-
-                using (MemoryStream memory = new MemoryStream(encryptedBytes))
+                using (Aes aes = Aes.Create())
                 {
-                    using (Aes aes = Aes.Create())
+                    aes.Mode = CipherMode.ECB;
+                    aes.Padding = PaddingMode.PKCS7;
+                    aes.KeySize = 256;
+                    aes.Key = bKey;
+
+                    using (CryptoStream decryptor = new CryptoStream(memory, aes.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        aes.Mode = CipherMode.ECB;
-                        aes.Padding = PaddingMode.PKCS7;
-                        aes.KeySize = 256;
-                        aes.Key = bKey;
-
-                        using (CryptoStream decryptor = new CryptoStream(memory, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                        using (MemoryStream tempMemory = new MemoryStream())
                         {
-                            using (MemoryStream tempMemory = new MemoryStream())
+                            byte[] buffer = new byte[1024];
+                            Int32 readBytes = 0;
+                            while ((readBytes = decryptor.Read(buffer, 0, buffer.Length)) > 0)
                             {
-                                byte[] buffer = new byte[1024];
-                                Int32 readBytes = 0;
-                                while ((readBytes = decryptor.Read(buffer, 0, buffer.Length)) > 0)
-                                {
-                                    tempMemory.Write(buffer, 0, readBytes);
-                                }
-
-                                decryptedData = tempMemory.ToArray();
-                                return Encoding.UTF8.GetString(decryptedData);
+                                tempMemory.Write(buffer, 0, readBytes);
                             }
+
+                            decryptedData = tempMemory.ToArray();
+                            return Encoding.UTF8.GetString(decryptedData);
                         }
                     }
                 }
             }
-            catch
+        }
+
+        /// <summary>
+        /// AES encrypt stream (ECB mode, no IV)
+        /// </summary>
+        /// <param name="input">Input stream</param>
+        /// <param name="output">Output stream</param>
+        /// <param name="key">Key, requires 32 bits</param>
+        public static void AESEncryptStream(Stream input, Stream output, string key)
+        {
+            Check.Argument.IsNotEmpty(key, nameof(key));
+            Check.Argument.IsEqualLength(key.Length, 32, nameof(key));
+
+            byte[] bKey = new byte[32];
+            Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
+
+            using (Aes aes = Aes.Create())
             {
-                return null;
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.PKCS7;
+                aes.KeySize = 256;
+                aes.Key = bKey;
+
+                using (CryptoStream cryptoStream = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write, leaveOpen: true))
+                {
+                    input.CopyTo(cryptoStream);
+                    cryptoStream.FlushFinalBlock();
+                }
+            }
+        }
+
+        /// <summary>
+        /// AES decrypt stream (ECB mode, no IV)
+        /// </summary>
+        /// <param name="input">Input stream (encrypted)</param>
+        /// <param name="output">Output stream (decrypted)</param>
+        /// <param name="key">Key, requires 32 bits</param>
+        public static void AESDecryptStream(Stream input, Stream output, string key)
+        {
+            Check.Argument.IsNotEmpty(key, nameof(key));
+            Check.Argument.IsEqualLength(key.Length, 32, nameof(key));
+
+            byte[] bKey = new byte[32];
+            Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.PKCS7;
+                aes.KeySize = 256;
+                aes.Key = bKey;
+
+                using (CryptoStream cryptoStream = new CryptoStream(input, aes.CreateDecryptor(), CryptoStreamMode.Read, leaveOpen: true))
+                {
+                    cryptoStream.CopyTo(output);
+                }
             }
         }
 
@@ -424,6 +423,19 @@ namespace Encrypt.Library.Core
         #endregion
 
         #region 企业微信消息加解密相关方法
+
+        /// <summary>
+        /// 对Base64密钥进行正确的补位
+        /// </summary>
+        private static string PadBase64Key(string key)
+        {
+            int remainder = key.Length % 4;
+            if (remainder == 2)
+                return key + "==";
+            if (remainder == 3)
+                return key + "=";
+            return key;
+        }
 
         /// <summary>
         /// PKCS7填充块大小
@@ -479,22 +491,6 @@ namespace Encrypt.Library.Core
         }
 
         /// <summary>
-        /// 生成16位随机字符串
-        /// </summary>
-        /// <returns>16位随机字符串</returns>
-        private static string GetRandomStr()
-        {
-            Random random = new Random();
-            var chars = "0123456789".ToCharArray();
-            var sb = new StringBuilder(16);
-            for (int i = 0; i < 16; i++)
-            {
-                sb.Append(chars[random.Next(chars.Length)]);
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>
         /// 企业微信消息加密
         /// </summary>
         /// <param name="data">需要加密的明文</param>
@@ -506,15 +502,14 @@ namespace Encrypt.Library.Core
             try
             {
                 // 解码base64密钥
-                string keyWithPadding = key + "=";
-                byte[] keyBytes = Convert.FromBase64String(keyWithPadding);
+                byte[] keyBytes = Convert.FromBase64String(PadBase64Key(key));
                 if (keyBytes.Length != 32)
                 {
                     throw new ArgumentException("AES密钥长度必须为32字节");
                 }
 
                 // 生成16位随机字符串
-                string randomStr = GetRandomStr();
+                string randomStr = GetRandomStr(16);
                 byte[] randomStrBytes = Encoding.UTF8.GetBytes(randomStr);
 
                 // 计算数据长度（网络字节序）
@@ -577,8 +572,7 @@ namespace Encrypt.Library.Core
             try
             {
                 // 解码base64密钥
-                string keyWithPadding = key + "=";
-                byte[] keyBytes = Convert.FromBase64String(keyWithPadding);
+                byte[] keyBytes = Convert.FromBase64String(PadBase64Key(key));
                 if (keyBytes.Length != 32)
                 {
                     throw new ArgumentException("AES密钥长度必须为32字节");
@@ -767,16 +761,9 @@ namespace Encrypt.Library.Core
 
                     using (CryptoStream cryptoStream = new CryptoStream(Memory, des.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        try
-                        {
-                            cryptoStream.Write(plainBytes, 0, plainBytes.Length);
-                            cryptoStream.FlushFinalBlock();
-                            return Memory.ToArray();
-                        }
-                        catch (Exception ex)
-                        {
-                            return null;
-                        }
+                        cryptoStream.Write(plainBytes, 0, plainBytes.Length);
+                        cryptoStream.FlushFinalBlock();
+                        return Memory.ToArray();
                     }
                 }
             }
@@ -872,19 +859,72 @@ namespace Encrypt.Library.Core
 
                     using (CryptoStream cryptoStream = new CryptoStream(Memory, des.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        try
+                        using (MemoryStream tempMemory = new MemoryStream())
                         {
-                            byte[] tmp = new byte[encryptedBytes.Length];
-                            int len = cryptoStream.Read(tmp, 0, encryptedBytes.Length);
-                            byte[] ret = new byte[len];
-                            Array.Copy(tmp, 0, ret, 0, len);
-                            return ret;
-                        }
-                        catch
-                        {
-                            return null;
+                            byte[] buffer = new byte[1024];
+                            int readBytes = 0;
+                            while ((readBytes = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                tempMemory.Write(buffer, 0, readBytes);
+                            }
+                            return tempMemory.ToArray();
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// DES encrypt stream (ECB mode)
+        /// </summary>
+        /// <param name="input">Input stream</param>
+        /// <param name="output">Output stream</param>
+        /// <param name="key">Key, requires 24 bits</param>
+        public static void DESEncryptStream(Stream input, Stream output, string key)
+        {
+            Check.Argument.IsNotEmpty(key, nameof(key));
+            Check.Argument.IsEqualLength(key.Length, 24, nameof(key));
+
+            byte[] bKey = new byte[24];
+            Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
+
+            using (TripleDES des = TripleDES.Create())
+            {
+                des.Mode = CipherMode.ECB;
+                des.Padding = PaddingMode.PKCS7;
+                des.Key = bKey;
+
+                using (CryptoStream cryptoStream = new CryptoStream(output, des.CreateEncryptor(), CryptoStreamMode.Write, leaveOpen: true))
+                {
+                    input.CopyTo(cryptoStream);
+                    cryptoStream.FlushFinalBlock();
+                }
+            }
+        }
+
+        /// <summary>
+        /// DES decrypt stream (ECB mode)
+        /// </summary>
+        /// <param name="input">Input stream (encrypted)</param>
+        /// <param name="output">Output stream (decrypted)</param>
+        /// <param name="key">Key, requires 24 bits</param>
+        public static void DESDecryptStream(Stream input, Stream output, string key)
+        {
+            Check.Argument.IsNotEmpty(key, nameof(key));
+            Check.Argument.IsEqualLength(key.Length, 24, nameof(key));
+
+            byte[] bKey = new byte[24];
+            Array.Copy(Encoding.UTF8.GetBytes(key.PadRight(bKey.Length)), bKey, bKey.Length);
+
+            using (TripleDES des = TripleDES.Create())
+            {
+                des.Mode = CipherMode.ECB;
+                des.Padding = PaddingMode.PKCS7;
+                des.Key = bKey;
+
+                using (CryptoStream cryptoStream = new CryptoStream(input, des.CreateDecryptor(), CryptoStreamMode.Read, leaveOpen: true))
+                {
+                    cryptoStream.CopyTo(output);
                 }
             }
         }
@@ -977,7 +1017,7 @@ namespace Encrypt.Library.Core
         /// RSA From pkcs public key
         /// </summary>
         /// <param name="pkcsKey"></param>
-        /// <returns></returns>
+        /// <returns>Caller is responsible for disposing the returned RSA object.</returns>
         public static RSA RSAFromPublicPkcs(string pkcsKey)
         {
             return RSAFromPkcs(pkcsKey, false);
@@ -987,7 +1027,7 @@ namespace Encrypt.Library.Core
         ///  RSA From pkcs #1 private key
         /// </summary>
         /// <param name="pkcsKey"></param>
-        /// <returns></returns>
+        /// <returns>Caller is responsible for disposing the returned RSA object.</returns>
         public static RSA RSAFromPrivatePkcs1(string pkcsKey)
         {
             return RSAFromPkcs(pkcsKey, true);
@@ -997,7 +1037,7 @@ namespace Encrypt.Library.Core
         ///  RSA From pkcs #8 private key
         /// </summary>
         /// <param name="pkcsKey"></param>
-        /// <returns></returns>
+        /// <returns>Caller is responsible for disposing the returned RSA object.</returns>
         public static RSA RSAFromPrivatePkcs8(string pkcsKey)
         {
             return RSAFromPkcs(pkcsKey, true, true);
@@ -1524,7 +1564,7 @@ namespace Encrypt.Library.Core
                     ? BitConverter.ToString(bytes_md5_out)
                     : BitConverter.ToString(bytes_md5_out, 4, 8);
 
-                str_md5_out = str_md5_out.Replace("-", "");
+                str_md5_out = str_md5_out.Replace("-", "").ToLowerInvariant();
                 return str_md5_out;
             }
         }
@@ -1539,11 +1579,16 @@ namespace Encrypt.Library.Core
         {
             Check.Argument.IsNotEmpty(data, nameof(data));
 
-            string str_md5_out = string.Empty;
             using (MD5 md5 = MD5.Create())
             {
-                byte[] bytes_md5_in = data;
-                return md5.ComputeHash(bytes_md5_in);
+                byte[] hash = md5.ComputeHash(data);
+                if (length == MD5Length.L16)
+                {
+                    byte[] truncated = new byte[8];
+                    Array.Copy(hash, 4, truncated, 0, 8);
+                    return truncated;
+                }
+                return hash;
             }
         }
         /// <summary>
@@ -1566,7 +1611,7 @@ namespace Encrypt.Library.Core
                     ? BitConverter.ToString(bytes_md5_out)
                     : BitConverter.ToString(bytes_md5_out, 4, 8);
 
-                str_md5_out = str_md5_out.Replace("-", "");
+                str_md5_out = str_md5_out.Replace("-", "").ToLowerInvariant();
                 return str_md5_out;
             }
         }
@@ -1593,6 +1638,39 @@ namespace Encrypt.Library.Core
                 }
             }
         }
+
+#if NET6_0_OR_GREATER
+        /// <summary>
+        /// md5 (async, supports cancellation for large files)
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="length"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<string> GetMd5ForFileAsync(string filePath, MD5Length length = MD5Length.L32, CancellationToken cancellationToken = default)
+        {
+            if (!File.Exists(filePath)) return string.Empty;
+            using (MD5 md5 = MD5.Create())
+            {
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, useAsync: true))
+                {
+                    byte[] buffer = new byte[81920];
+                    int bytesRead;
+                    while ((bytesRead = await fs.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
+                    {
+                        md5.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                    }
+                    md5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                    var hash = md5.Hash;
+                    var str_md5_out = length == MD5Length.L32
+                        ? BitConverter.ToString(hash)
+                        : BitConverter.ToString(hash, 4, 8);
+                    return str_md5_out.Replace("-", "").ToLowerInvariant();
+                }
+            }
+        }
+#endif
+
         /// <summary>
         /// md5
         /// </summary>
