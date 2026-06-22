@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://github.com/yswenli/Encrypt.Library</PackageProjectUrl>
     <Copyright>@yswenli</Copyright>
     <PackageReleaseNotes>Encrypt.Library is a common and quick encryption and decryption tool library</PackageReleaseNotes>
-    <Version>2026.2.26.1</Version>
+    <Version>2026.6.21.1</Version>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Title>Encrypt.Library is a common and quick encryption and decryption tool library</Title>
     <RepositoryType>git</RepositoryType>
@@ -36,6 +36,10 @@
 
   <ItemGroup>
     <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README_EN.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

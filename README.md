@@ -2,6 +2,8 @@
 [![NetStandard 2.1](https://img.shields.io/badge/NetStandard-2.1-orange.svg)](https://www.microsoft.com/net/core)
 [![license](https://img.shields.io/github/license/yswenli/Encrypt.Library.svg)](https://github.com/yswenli/Encrypt.Library/blob/master/LICENSE.txt)
 
+**中文** | **[English](README_EN.md)**
+
 # Encrypt.Library
 
 > 一个开箱即用的 .NET 加密工具箱——从 AES 到国密 SM2，从文件哈希到 TOTP 动态口令，一行代码搞定。
