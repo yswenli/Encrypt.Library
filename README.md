@@ -1,510 +1,502 @@
 ﻿[![NuGet](https://img.shields.io/nuget/v/Encrypt.Library.svg)](https://nuget.org/packages/Encrypt.Library)
-[![NET 6.0](https://img.shields.io/badge/.NET-6.0-brightgreen)](https://www.microsoft.com/net/core)
 [![NetStandard 2.1](https://img.shields.io/badge/NetStandard-2.1-orange.svg)](https://www.microsoft.com/net/core)
-[![license](https://img.shields.io/github/license/myloveCc/Encrypt.Library.svg)](https://github.com/yswenli/Encrypt.Library/blob/master/LICENSE.txt)
+[![license](https://img.shields.io/github/license/yswenli/Encrypt.Library.svg)](https://github.com/yswenli/Encrypt.Library/blob/master/LICENSE.txt)
 
-## 简介
+# Encrypt.Library
 
-`Encrypt.Library` 是一个 NETCore 加密解密工具库，支持 AES、DES、RSA、MD5、SHA1、SHA256、SHA384、SHA512、SM3、SM2、SM4 等常用加密算法。
+> 一个开箱即用的 .NET 加密工具箱——从 AES 到国密 SM2，从文件哈希到 TOTP 动态口令，一行代码搞定。
+
+## 为什么选择 Encrypt.Library？
+
+- **算法全覆盖**：对称加密（AES / DES / SM4）、非对称加密（RSA / SM2）、哈希（MD5 / SHA / SM3）、消息认证码（HMAC）、一次性密码（TOTP / HOTP），一个包全搞定
+- **国密原生支持**：SM2 签名加密、SM3 哈希、SM4 对称加密，无需额外依赖
+- **流式加密 API**：支持 `Stream` 直接读写，GB 级文件加密也不撑爆内存
+- **企业微信开箱即用**：内置消息签名验证、消息体加解密，对接企业微信零门槛
+- **安全密钥生成**：所有随机数均由 `RandomNumberGenerator` 生成，杜绝可预测风险
+- **零外部依赖**：BouncyCastle 源码内嵌，不引入额外 NuGet 包
 
 ---
 
-## 目录索引
+## 目录
 
 - [快速开始](#快速开始)
-- [对称加密算法](#对称加密算法)
+- [对称加密](#对称加密)
   - [AES](#aes)
-  - [DES](#des)
-  - [SM4](#sm4)
-- [非对称加密算法](#非对称加密算法)
+  - [DES（3DES）](#des3des)
+  - [SM4（国密）](#sm4国密)
+  - [流式加密（大文件）](#流式加密大文件)
+- [非对称加密](#非对称加密)
   - [RSA](#rsa)
-- [哈希算法](#哈希算法)
+  - [SM2（国密）](#sm2国密)
+- [哈希与摘要](#哈希与摘要)
   - [MD5](#md5)
-  - [SHA](#sha)
-  - [HMAC](#hmac)
-  - [SM3](#sm3)
-- [国密算法](#国密算法)
-  - [SM2](#sm2-1)
-  - [SM4](#sm4-1)
-- [微信/企业微信消息加解密](#微信企业微信消息加解密)
-- [许可证](#license)
+  - [SHA 系列](#sha-系列)
+  - [SM3（国密）](#sm3国密)
+  - [HMAC 消息认证码](#hmac-消息认证码)
+- [一次性密码 TOTP / HOTP](#一次性密码-totp--hotp)
+- [数据脱敏](#数据脱敏)
+- [数字 ID 加密](#数字-id-加密)
+- [GZip 压缩](#gzip-压缩)
+- [Base64 编码](#base64-编码)
+- [雪花 ID 生成器](#雪花-id-生成器)
+- [MachineKey 生成](#machinekey-生成)
+- [微信 / 企业微信](#微信--企业微信)
+- [安全建议](#安全建议)
+- [许可证](#许可证)
 
 ---
 
 ## 快速开始
 
-### 安装方式
+### 安装
 
-#### Package Manager
-```
-Install-Package Encrypt.Library -Version 2.0.6.6
-```
-
-#### .NET CLI
-```
-dotnet add package Encrypt.Library -Version 2.0.6.6
+```bash
+dotnet add package Encrypt.Library
 ```
 
-#### PackageReference
-```xml
-<PackageReference Include="Encrypt.Library" Version="2.0.6.6" />
+或在 NuGet 包管理器中搜索 `Encrypt.Library`。
+
+### 最简示例
+
+```csharp
+using Encrypt.Library;
+
+// AES 加密解密
+var encrypted = AESUtil.Encrypt("你好世界", key);
+var decrypted = AESUtil.Decrypt(encrypted, key);
+
+// 计算 MD5
+var hash = MD5Util.GetMD5Str("Hello");
+
+// RSA 签名验签
+var sign = RSAUtil.Sign("重要数据", privateKey);
+var valid = RSAUtil.Verify("重要数据", sign, publicKey);
 ```
 
 ---
 
-## 对称加密算法
+## 对称加密
+
+> 对称加密 = 同一把钥匙上锁和开锁。速度快，适合大量数据加密。
 
 ### AES
 
-> AES（Advanced Encryption Standard）高级加密标准，是一种对称加密算法，支持 ECB 和 CBC 两种模式。
+AES 是目前最广泛使用的对称加密算法，被美国政府选为加密标准。支持 **ECB** 和 **CBC** 两种模式：
 
-#### 生成 AES 密钥
+| 模式 | 安全性 | 特点 | 推荐场景 |
+|------|--------|------|----------|
+| ECB | 较低 | 相同明文产生相同密文，会泄露数据模式 | 仅用于简单场景 |
+| CBC | 高 | 引入 IV 向量，相同明文加密结果不同 | **生产环境推荐** |
 
-```csharp
-// 生成 AES 密钥和 IV（密钥长度 256 位，IV 长度 128 位）
-var aesKey = AESUtil.Key;
-var key = aesKey.Key;   // 加密密钥
-var iv = aesKey.IV;     // 初始化向量（CBC 模式必需）
-```
-
-#### AES 加密
-
-**ECB 模式（无需 IV）**
+> 密钥要求：16 字节 = 128 位，24 字节 = 192 位，32 字节 = 256 位。IV 固定 16 字节。
 
 ```csharp
-// 注意：ECB 模式安全性较低，不推荐用于敏感数据
-var srcString = "需要加密的字符串";
-var encrypted = AESUtil.Encrypt(srcString, key);
-```
+// 生成随机密钥和 IV
+var key = AESUtil.Key.Key;   // 32 字节密钥
+var iv  = AESUtil.Key.IV;    // 16 字节 IV
 
-**CBC 模式（需要 IV）**
+// ---- CBC 模式（推荐）----
+var cipher = AESUtil.Encrypt("敏感数据", key, iv);   // 返回 Base64
+var plain  = AESUtil.Decrypt(cipher, key, iv);        // "敏感数据"
 
-```csharp
-// CBC 模式安全性更高，适用于大多数场景
-var srcString = "需要加密的字符串";
-var encrypted = AESUtil.Encrypt(srcString, key, iv);
+// ---- ECB 模式（无需 IV）----
+var cipher2 = AESUtil.Encrypt("数据", key);
+var plain2  = AESUtil.Decrypt(cipher2, key);
 
-// 字节数组加密（适用于二进制数据）
-var srcBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-var encryptedBytes = AESUtil.Encrypt(srcBytes, key, iv);
-```
+// ---- 字节数组 ----
+byte[] raw = Encoding.UTF8.GetBytes("二进制数据");
+byte[] enc = AESUtil.Encrypt(raw, key, iv);
+byte[] dec = AESUtil.Decrypt(enc, key, iv);
 
-#### AES 解密
-
-**ECB 模式**
-
-```csharp
-var encryptedStr = "已加密的字符串";
-var decrypted = AESUtil.Decrypt(encryptedStr, key);
-```
-
-**CBC 模式**
-
-```csharp
-var encryptedStr = "已加密的字符串";
-var decrypted = AESUtil.Decrypt(encryptedStr, key, iv);
-
-// 字节数组解密
-var encryptedBytes = /* 已加密的字节数组 */;
-var decryptedBytes = AESUtil.Decrypt(encryptedBytes, key, iv);
+// ---- Hex 输出（而非 Base64）----
+var hexCipher = AESUtil.Encrypt("数据", key, withBase64: false);
+var hexPlain  = AESUtil.Decrypt(hexCipher, key, withBase64: false);
 ```
 
 ---
 
-### DES
+### DES（3DES）
 
-> DES（Data Encryption Standard）数据加密标准，是一种对称加密算法，由于密钥长度较短（56 位），安全性相对较低，建议使用 3DES 或 AES 替代。
-
-#### 生成 DES 密钥
+> 本库使用的是 **Triple DES（3DES）**，密钥长度 24 字节，安全性高于原始 DES。如果你在做新项目，建议直接用 AES。
 
 ```csharp
-// DES 密钥长度为 64 位（8 字节）
-var desKey = DESUtil.Key;
-var key = desKey.Key;
-```
+var key = DESUtil.Key;    // 24 字节密钥
+var iv  = DESUtil.IV;     // 8 字节 IV
 
-#### 生成 DES 初始化向量
+// 字符串加密（返回 Base64）
+var cipher = DESUtil.Encrypt("数据", key, iv);
+var plain  = DESUtil.Decrypt(cipher, key, iv);
 
-```csharp
-// DES IV 长度为 64 位（8 字节），CBC 模式必需
-var desIv = DESUtil.Iv;
-```
+// 字节数组
+byte[] enc = DESUtil.Encrypt(Encoding.UTF8.GetBytes("数据"), key, iv);
+byte[] dec = DESUtil.Decrypt(enc, key, iv);
 
-#### DES 加密
-
-**ECB 模式（无需 IV）**
-
-```csharp
-var srcString = "需要加密的字符串";
-var encrypted = DESUtil.Encrypt(srcString, key);
-
-// 字节数组加密
-var srcBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-var encryptedBytes = DESUtil.Encrypt(srcBytes, key);
-```
-
-**CBC 模式（需要 IV）**
-
-```csharp
-// 字节数组加密（推荐使用 CBC 模式以提高安全性）
-var srcBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-var encrypted = DESUtil.Encrypt(srcBytes, key, desIv);
-```
-
-#### DES 解密
-
-**ECB 模式**
-
-```csharp
-var encryptedStr = "已加密的字符串";
-var decrypted = DESUtil.Decrypt(encryptedStr, key);
-
-// 字节数组解密
-var encryptedBytes = /* 已加密的字节数组 */;
-var decryptedBytes = DESUtil.Decrypt(encryptedBytes, key);
-```
-
-**CBC 模式**
-
-```csharp
-var encryptedBytes = /* 已加密的字节数组 */;
-var decrypted = DESUtil.Decrypt(encryptedBytes, key, desIv);
+// ECB 模式（无需 IV）
+var cipher2 = DESUtil.Encrypt("数据", key);
 ```
 
 ---
 
-### SM4
+### SM4（国密）
 
-> SM4 是中国国家密码管理局发布的对称加密算法，是一种分组密码算法，分组长度为 128 位，密钥长度也为 128 位。其安全性与 AES 相当，已被纳入 ISO/IEC 国际标准。
+SM4 是中国国家密码管理局发布的对称加密标准，安全性与 AES 相当。如果你的项目需要满足国密合规要求，SM4 是对称加密的首选。
 
-#### 生成 SM4 密钥
-
-```csharp
-// SM4 密钥长度为 128 位（16 字节）
-var sm4Key = SM4Util.Key;
-var key = sm4Key.Key;
-```
-
-#### 生成 SM4 初始化向量
+> 密钥长度 16 字节，IV 长度 16 字节。
 
 ```csharp
-// SM4 IV 长度为 128 位（16 字节），CBC 模式必需
-var sm4Iv = SM4Util.Iv;
-```
+var key = SM4Util.Key;    // 16 字节密钥
+var iv  = SM4Util.IV;     // 16 字节 IV
 
-#### SM4 加密
+// CBC 模式
+var cipher = SM4Util.Encrypt(key, iv, "数据", Sm4Mode.CBC);
+var plain  = SM4Util.Decrypt(key, iv, cipher, Sm4Mode.CBC);
 
-**ECB 模式（无需 IV）**
-
-```csharp
-var srcString = "需要加密的字符串";
-var encrypted = SM4Util.Encrypt(key, srcString);
-
-// 字节数组加密
-var srcBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-var encryptedBytes = SM4Util.Encrypt(key, srcBytes);
-```
-
-**CBC 模式（需要 IV）**
-
-```csharp
-// 字节数组加密
-var srcBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-var encrypted = SM4Util.Encrypt(key, sm4Iv, srcBytes);
-```
-
-#### SM4 解密
-
-**ECB 模式**
-
-```csharp
-var encryptedStr = "已加密的字符串";
-var decrypted = SM4Util.Decrypt(key, encryptedStr);
-
-// 字节数组解密
-var encryptedBytes = /* 已加密的字节数组 */;
-var decryptedBytes = SM4Util.Decrypt(key, encryptedBytes);
-```
-
-**CBC 模式**
-
-```csharp
-var encryptedBytes = /* 已加密的字节数组 */;
-var decrypted = SM4Util.Decrypt(key, sm4Iv, encryptedBytes);
+// ECB 模式
+var cipher2 = SM4Util.Encrypt(key, "数据");
+var plain2  = SM4Util.Decrypt(key, cipher2);
 ```
 
 ---
 
-## 非对称加密算法
+### 流式加密（大文件）
+
+> 需要加密一个 500MB 的文件？不必全部加载到内存，用流式 API 边读边写。
+
+```csharp
+using var input  = File.OpenRead("原始文件.dat");
+using var output = File.Create("加密文件.dat");
+EncryptProvider.AESEncryptStream(input, output, key);
+
+// 解密
+using var encInput  = File.OpenRead("加密文件.dat");
+using var decOutput = File.Create("解密文件.dat");
+EncryptProvider.AESDecryptStream(encInput, decOutput, key);
+```
+
+DES 同样支持流式：
+
+```csharp
+EncryptProvider.DESEncryptStream(input, output, key);
+EncryptProvider.DESDecryptStream(input, output, key);
+```
+
+---
+
+## 非对称加密
+
+> 非对称加密 = 两把钥匙：公钥加密、私钥解密；私钥签名、公钥验签。
 
 ### RSA
 
-> RSA 是一种非对称加密算法，基于大整数分解的数学难题。RSA 支持数据加密和数字签名，常用于密钥交换和身份认证。
-
-#### 生成 RSA 密钥对
+RSA 是最经典的非对称加密算法，基于大整数分解的数学难题。
 
 ```csharp
-// 生成 RSA 密钥对（默认 2048 位）
+// 生成密钥对
 var rsaKey = RSAUtil.Key;
-
-// 获取密钥组件
-var publicKey = rsaKey.PublicKey;    // 公钥
-var privateKey = rsaKey.PrivateKey;  // 私钥
-var exponent = rsaKey.Exponent;      // 指数
-var modulus = rsaKey.Modulus;        // 模数
-```
-
-#### RSA 签名与验签
-
-```csharp
-var rawStr = "需要签名的原始字符串";
-
-// 使用私钥签名
-var signStr = RSAUtil.Sign(rawStr, privateKey);
-
-// 使用公钥验签
-var result = RSAUtil.Verify(rawStr, signStr, publicKey);
-```
-
-#### RSA 加密
-
-```csharp
-var publicKey = rsaKey.PublicKey;
-var srcString = "需要加密的字符串";
-
-// 默认使用 OAEP 填充（推荐）
-var encrypted = RSAUtil.Encrypt(publicKey, srcString);
-
-// 如需兼容旧版 macOS/Linux 可使用 PKCS1 填充
-// var encrypted = RSAUtil.Encrypt(publicKey, srcString, true);
-```
-
-#### RSA 解密
-
-```csharp
+var publicKey  = rsaKey.PublicKey;
 var privateKey = rsaKey.PrivateKey;
-var encryptedStr = "已加密的字符串";
 
-// 默认使用 OAEP 填充
-var decrypted = RSAUtil.Decrypt(privateKey, encryptedStr);
+// ---- 加密解密 ----
+var cipher = RSAUtil.Encrypt(publicKey, "短数据");
+var plain  = RSAUtil.Decrypt(privateKey, cipher);
 
-// 兼容 PKCS1 填充
-// var decrypted = RSAUtil.Decrypt(privateKey, encryptedStr, true);
+// ---- 签名验签 ----
+var sign  = RSAUtil.Sign("重要数据", privateKey);
+var valid = RSAUtil.Verify("重要数据", sign, publicKey);  // true
 ```
 
-#### RSA PEM 格式支持
+#### PEM 格式
+
+与 OpenSSL、Java、Python 等互操作时通常需要 PEM 格式密钥：
 
 ```csharp
 // 生成 PEM 格式密钥
+var (pubPem, priPem) = RSAUtil.GetPem(pkcs1: true);   // PKCS#1
+var (pubPem8, priPem8) = RSAUtil.GetPem(pkcs1: false); // PKCS#8（推荐）
 
-// PKCS1 格式（传统格式）
-var pkcs1KeyTuple = RSAUtil.GetPKCS(true);
-var publicPkcs1 = pkcs1KeyTuple.publicPkcs1;
-var privatePkcs1 = pkcs1KeyTuple.privatePkcs1;
+// 使用 PEM 密钥加密
+var cipher = RSAUtil.EncryptWithPem(pubPem, "数据");
+var plain  = RSAUtil.DecryptWithPem(priPem, cipher);
+```
 
-// PKCS8 格式（推荐格式）
-var pkcs8KeyTuple = RSAUtil.GetPKCS(false);
-publicPkcs1 = pkcs8KeyTuple.publicPkcs1;
-privatePkcs1 = pkcs8KeyTuple.privatePkcs1;
+#### PKCS 格式密钥
 
-// 使用 PEM 格式密钥进行加解密
-var rawStr = "需要加密的字符串";
-var encryptedStr = RSAUtil.EncryptWithPem(pemPublicKey, rawStr);
-var decryptedStr = RSAUtil.DecryptWithPem(pemPrivateKey, encryptedStr);
+```csharp
+// PKCS#1 格式
+var (pub1, pri1) = RSAUtil.GetPKCS(pkcs1: true);
+
+// PKCS#8 格式（推荐）
+var (pub8, pri8) = RSAUtil.GetPKCS(pkcs1: false);
 ```
 
 ---
 
-## 哈希算法
+### SM2（国密）
+
+SM2 是基于椭圆曲线的国密非对称算法，256 位密钥安全性相当于 RSA 3072 位。国密合规项目必选。
+
+```csharp
+// 生成密钥对
+SM2Util.GenerateKey(out byte[] pubKey, out byte[] privKey);
+
+// 加密
+var mode = Mode.C1C3C2;  // Java 常用模式；C1C2C3 为 C++ 常用
+var plain = Encoding.UTF8.GetBytes("国密加密数据");
+var enc   = SM2Util.Encrypt(pubKey, privKey, mode, plain);
+var dec   = SM2Util.Decrypt(pubKey, privKey, mode, enc);
+
+// 签名验签
+byte[] signature = SM2Util.Sign(pubKey, privKey, mode, plain);
+bool ok = SM2Util.VerifySign(pubKey, privKey, mode, plain, signature);
+```
+
+---
+
+## 哈希与摘要
+
+> 哈希 = 把任意数据"浓缩"成固定长度的指纹。不可逆，常用于校验数据完整性。
 
 ### MD5
 
-> MD5（Message-Digest Algorithm 5）是一种不可逆的哈希算法，产生 128 位（16 字节）的哈希值。由于存在碰撞风险，不推荐用于安全敏感场景，仅适用于数据完整性校验等场景。
+> MD5 速度快但存在碰撞风险，**不要用于密码存储或安全场景**，适合文件校验等用途。
 
 ```csharp
-var srcString = "需要计算哈希的字符串";
+// 字符串
+var hash = MD5Util.GetMD5Str("Hello World");  // 返回小写 32 位十六进制
 
-// 计算 MD5 哈希值（返回小写十六进制字符串）
-var hashed = MD5Util.GetMD5Str(srcString);
+// 字节数组
+byte[] hashBytes = MD5Util.GetMD5(Encoding.UTF8.GetBytes("data"));
 
-// 另一种写法（功能相同）
-var hashed2 = MD5Util.GetMd5Str(srcString);
+// 文件（流式读取，不会撑爆内存）
+var fileHash = MD5Util.GetMD5StrForFile("大文件.zip");
+
+// 流
+using var stream = File.OpenRead("文件.txt");
+var streamHash = MD5Util.GetMD5Str(stream);
+
+// 16 位截断（取中间 8 字节）
+var hash16 = MD5Util.GetMD5Str("data", MD5Length.L16);
+
+// 异步（.NET 6+，大文件可取消）
+var asyncHash = await MD5Util.GetMD5StrForFileAsync("超大文件.iso");
 ```
 
 ---
 
-### SHA
+### SHA 系列
 
-> SHA（Secure Hash Algorithm）安全哈希算法家族，包括 SHA1、SHA256、SHA384、SHA512 等变体。SHA1 由于存在安全漏洞，已不推荐使用；SHA256 及以上版本仍被广泛使用。
-
-#### SHA1
-
-```csharp
-var srcString = "需要计算哈希的字符串";
-var hashed = SHAUtil.GetSHA1(srcString);
-```
-
-#### SHA256
+| 算法 | 输出长度 | 安全性 | 推荐场景 |
+|------|----------|--------|----------|
+| SHA1 | 160 位 | 已不安全 | 兼容旧系统 |
+| SHA256 | 256 位 | 安全 | **通用推荐** |
+| SHA384 | 384 位 | 安全 | 高安全需求 |
+| SHA512 | 512 位 | 安全 | 最高安全等级 |
 
 ```csharp
-var srcString = "需要计算哈希的字符串";
-var hashed = SHAUtil.GetSHA256(srcString);
-```
-
-#### SHA384
-
-```csharp
-var srcString = "需要计算哈希的字符串";
-var hashed = SHAUtil.GetSHA384(srcString);
-```
-
-#### SHA512
-
-```csharp
-var srcString = "需要计算哈希的字符串";
-var hashed = SHAUtil.GetSHA512(srcString);
+var sha1   = SHAUtil.GetSHA1("data");
+var sha256 = SHAUtil.GetSHA256("data");
+var sha384 = SHAUtil.GetSHA384("data");
+var sha512 = SHAUtil.GetSHA512("data");
 ```
 
 ---
 
-### HMAC
+### SM3（国密）
 
-> HMAC（Hash-based Message Authentication Code）基于哈希的消息认证码，通过结合密钥和哈希算法提供消息完整性和认证功能。
-
-#### HMAC-MD5
+SM3 是国密哈希算法，输出 256 位，安全性与 SHA256 相当。国密合规场景下替代 SHA256。
 
 ```csharp
-var key = "密钥";
-var srcString = "需要计算 HMAC 的字符串";
-var hashed = MD5Util.GetHMACMD5(srcString, key);
-```
+// 返回字节数组
+byte[] hash = SM3Util.ToSM3byte("国密哈希");
 
-#### HMAC-SHA1
-```csharp
-var key = "密钥";
-var srcString = "需要计算 HMAC 的字符串";
-var hashed = SHAUtil.GetSHA1(srcString, key);
-```
+// 返回十六进制字符串
+string hexHash = SM3Util.ToSM3HexStr("国密哈希");
 
-#### HMAC-SHA256
-```csharp
-var key = "密钥";
-var srcString = "需要计算 HMAC 的字符串";
-var hashed = SHAUtil.GetSHA256(srcString, key);
-```
-
-#### HMAC-SHA384
-```csharp
-var key = "密钥";
-var srcString = "需要计算 HMAC 的字符串";
-var hashed = SHAUtil.GetSHA384(srcString, key);
-```
-
-#### HMAC-SHA512
-```csharp
-var key = "密钥";
-var srcString = "需要计算 HMAC 的字符串";
-var hashed = SHAUtil.GetSHA512(srcString, key);
+// 带密钥的 HMAC-SM3
+byte[] hmac = SM3Util.ToSM3byte("数据", "密钥");
 ```
 
 ---
 
-## 国密算法
+### HMAC 消息认证码
 
-> 国密算法是中国国家密码管理局发布的密码算法标准，包括 SM1、SM2、SM3、SM4 等。其中 SM1 和 SM4 为对称加密算法，SM2 为非对称加密算法，SM3 为哈希算法。
-
-### SM3
-
-> SM3 是一种国密哈希算法，产生 256 位（32 字节）的哈希值。安全性与 SHA256 相当，已被纳入 ISO/IEC 国际标准。
+HMAC 在哈希的基础上加入密钥，既能校验数据完整性，又能验证发送方身份。
 
 ```csharp
-// 计算 SM3 哈希值（返回字节数组）
-byte[] hashBytes = SM3Util.ToSM3byte("需要计算 SM3 哈希的字符串");
+var key = "my-secret-key";
 
-// 如需返回十六进制字符串
-// string hashString = SM3Util.ToSM3HexStr("需要计算 SM3 哈希的字符串");
+var hmacMd5    = MD5Util.GetHMACMD5("data", key);
+var hmacSha1   = SHAUtil.GetSHA1("data", key);
+var hmacSha256 = SHAUtil.GetSHA256("data", key);
+var hmacSha384 = SHAUtil.GetSHA384("data", key);
+var hmacSha512 = SHAUtil.GetSHA512("data", key);
 ```
 
 ---
 
-### SM2
+## 一次性密码 TOTP / HOTP
 
-> SM2 是一种国密非对称加密算法，基于椭圆曲线密码学（ECC）。SM2 算法相较于 RSA 具有更短的密钥长度和更高的安全强度，已被纳入 ISO/IEC 国际标准。
-
-#### 生成 SM2 密钥对
+用于双因素认证（2FA），与 Google Authenticator 等 TOTP 应用兼容。
 
 ```csharp
-byte[] pubKey, privKey;
-SM2Util.GenerateKey(out pubKey, out privKey);
-```
+// TOTP（基于时间，每 30 秒刷新一次）
+string code = OptUtil.GetTotp("JBSWY3DPEHPK3PXP");
 
-#### SM2 加密
+// HOTP（基于计数器）
+string hotpCode = OptUtil.GetHotp("JBSWY3DPEHPK3PXP", counter: 1);
 
-```csharp
-// SM2 加密模式：C1C2C3（C++ 实现常用）或 C1C3C2（Java 实现常用）
-var mode = Mode.C1C2C3;
-
-// 待加密的字节数组
-var plainBytes = Encoding.UTF8.GetBytes("需要加密的字符串");
-
-// 加密
-var encryptedBytes = SM2Util.Encrypt(pubKey, privKey, mode, plainBytes);
-```
-
-#### SM2 解密
-
-```csharp
-// 使用之前加密的模式进行解密
-var decryptedBytes = SM2Util.Decrypt(pubKey, privKey, mode, encryptedBytes);
-var decryptedString = Encoding.UTF8.GetString(decryptedBytes);
+// 生成 OTP URI（用于生成二维码）
+string uri = OptUtil.GetOtpUri(
+    secret: "JBSWY3DPEHPK3PXP",
+    otpType: OtpType.Totp,
+    user: "user@example.com",
+    issuer: "MyApp",
+    hash: OtpHashMode.Sha1,
+    digits: 6,
+    period: 30,
+    counter: 0
+);
 ```
 
 ---
 
-## 微信/企业微信消息加解密
+## 数据脱敏
 
-> 本库提供了微信/企业微信消息的加解密功能，包括消息签名验证和消息体加解密。
-
-### 微信消息签名验证
-
-> 微信服务器会发送 signature 参数用于验证请求是否来自微信服务器。通过 SHA1 算法计算签名进行验证。
+在展示敏感信息时，用星号遮挡中间部分，保护用户隐私。
 
 ```csharp
-var token = "你的Token";           // 在微信后台配置的 Token
-var timestamp = "时间戳";          // 微信服务器传来的 timestamp
-var nonce = "随机字符串";          // 微信服务器传来的 nonce
-var encrypt = "加密消息";          // 微信服务器传来的 encrypt（加密消息）
+// 通用脱敏：保留首尾，中间用 * 替代
+DesensitizationUtil.CommonDisplay("13812345678");  // "138****5678"
 
-// 计算签名并验证
-var signature = SHAUtil.GetSHA1ForWeChat(token, timestamp, nonce, encrypt);
-// 将计算的 signature 与微信传来的 signature 比对
+// 姓名脱敏
+DesensitizationUtil.GetSensitiveName("张三丰");  // "张*丰"
+DesensitizationUtil.GetSensitiveName("李四");    // "李*"
+
+// 手机号脱敏
+DesensitizationUtil.GetSensitivePhoneNumber("13812345678");  // "138****5678"
 ```
 
-### 微信消息加密
+---
 
-> 用于对发送给微信服务器的消息进行加密。
+## 数字 ID 加密
+
+将整数 ID 加密成不可猜测的字符串，适合用在 URL 中隐藏自增 ID。
 
 ```csharp
-var data = "需要加密的明文消息";
-var key = "AES密钥（Base64编码）";      // 在微信后台配置的 EncodingAESKey 解码得到
-var receiveId = "企业ID或AppId";        // 企业微信为企业ID，公众号为AppId
+// 整数 → 加密字符串
+string encId = DigitalEncryptUtil.FromInt(12345);
 
-// 加密消息（返回 Base64 编码的密文）
-var encrypted = AESUtil.EncryptForWeChat(data, key, receiveId);
+// 加密字符串 → 整数
+int decId = DigitalEncryptUtil.ToInt(encId);  // 12345
+
+// 同样支持 long 和 decimal
+string encLong = DigitalEncryptUtil.FromLong(9999999999L);
+long decLong   = DigitalEncryptUtil.ToLong(encLong);
+
+string encDec = DigitalEncryptUtil.FromDecimal(99.99m);
+decimal decDec = DigitalEncryptUtil.ToDecimal(encDec);
 ```
 
-### 微信消息解密
+---
 
-> 用于解密来自微信服务器的消息。
+## GZip 压缩
 
 ```csharp
-var encryptedData = "微信服务器传来的加密消息（Base64编码）";
-var key = "AES密钥（Base64编码）";      // 在微信后台配置的 EncodingAESKey 解码得到
-var receiveId = "企业ID或AppId";        // 企业微信为企业ID，公众号为 AppId
+// 字节数组压缩
+byte[] original = Encoding.UTF8.GetBytes("需要压缩的长文本...");
+byte[] compressed = GZipUtil.Compress(original);
+byte[] restored   = GZipUtil.Decompress(compressed);
 
-// 解密消息
-var decrypted = AESUtil.DecryptForWeChat(encryptedData, key, receiveId);
+// 字符串压缩（返回 Base64）
+string zipStr   = GZipUtil.Compress("需要压缩的文本");
+string unzipStr = GZipUtil.Decompress(zipStr);
 ```
+
+---
+
+## Base64 编码
+
+```csharp
+// 字符串 → Base64
+string b64 = "Hello".ConvertToBase64Str();     // "SGVsbG8="
+
+// Base64 → 字符串
+string raw = b64.ConvertToUTF8Str();           // "Hello"
+
+// URL 安全的 Base64（替换 +/ 为 -_，去除 =）
+string urlSafe = b64.EncodeForUriSafe();
+string restored = urlSafe.DecodeForUriSafe();
+```
+
+---
+
+## 雪花 ID 生成器
+
+分布式环境下生成全局唯一、趋势递增的 64 位 ID。
+
+```csharp
+// 设置机器 ID（可选，默认为 1）
+SnowflakeIDcreator.SetWorkerID(1);
+
+// 生成 ID
+long id = SnowflakeIDcreator.NextId();  // 如 1425678901234567890
+```
+
+---
+
+## MachineKey 生成
+
+用于 ASP.NET 的 `<machineKey>` 配置节。
+
+```csharp
+// decryptionKey（16-48 字符）
+string decKey = MachineKeyUtil.CreateDecryptionKey(48);
+
+// validationKey（48-128 字符）
+string valKey = MachineKeyUtil.CreateValidationKey(128);
+```
+
+---
+
+## 微信 / 企业微信
+
+### 消息签名验证
+
+验证请求是否来自微信服务器：
+
+```csharp
+string signature = SHAUtil.GetSHA1ForWeChat(token, timestamp, nonce, encrypt);
+// 将 signature 与微信传来的 signature 比对
+bool isValid = signature == requestSignature;
+```
+
+### 消息加密
+
+```csharp
+// key: 在微信后台配置的 EncodingAESKey
+// receiveId: 企业微信为企业 ID，公众号为 AppId
+string encrypted = AESUtil.EncryptForWeChat(message, key, receiveId);
+```
+
+### 消息解密
+
+```csharp
+string decrypted = AESUtil.DecryptForWeChat(encryptedData, key, receiveId);
+```
+
+---
+
+## 安全建议
+
+| 场景 | 推荐 | 避免 |
+|------|------|------|
+| 对称加密 | AES-256-CBC、SM4 | DES、ECB 模式 |
+| 非对称加密 | RSA 2048+、SM2 | RSA 1024 |
+| 哈希 | SHA256、SHA512、SM3 | MD5（仅用于校验）、SHA1 |
+| 密码存储 | bcrypt / PBKDF2 / Argon2 | 直接 MD5/SHA |
+| 随机数 | `RandomNumberGenerator` | `System.Random` |
+
+> **本库不适用于密码存储场景。** 如需存储用户密码，请使用专门的密码哈希库（如 BCrypt.Net）。
 
 ---
 
